@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/henry853951/badminton-venue-manager:latest
+          image: ghcr.io/henry753951/badminton-venue-manager:latest
           command:
             - sh
             - "-c"
