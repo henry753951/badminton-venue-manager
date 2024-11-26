@@ -1,0 +1,55 @@
+name: Build And Deploy
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - master
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    permissions:
+      contents: write
+      packages: write
+    env:
+      IMAGE_NAME: ${{ github.repository }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+      - id: string
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.IMAGE_NAME }}
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install Dependencies
+        run: pnpm install --fix-lockfile
+      - name: Build Project
+        run: pnpm run build
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ steps.string.outputs.lowercase }}:latest
