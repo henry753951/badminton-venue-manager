@@ -1,11 +1,4 @@
-import {
-  format,
-  parse,
-  addWeeks,
-  startOfWeek,
-  endOfWeek,
-  addDays,
-} from "date-fns";
+import { format, parse, addWeeks, startOfWeek, endOfWeek, addDays } from "date-fns";
 
 export interface DaySchedule {
   date: string;
@@ -45,7 +38,7 @@ export const useApi = () => {
             console.error("Failed to fetch schedule:", error);
             return [];
           }
-        }
+        },
       );
 
       return {
@@ -56,7 +49,7 @@ export const useApi = () => {
     },
     fetchCourts: async (
       name: string | undefined = undefined,
-      location: string | undefined = undefined
+      location: string | undefined = undefined,
     ) => {
       const inputs = ref({
         name,
@@ -75,7 +68,7 @@ export const useApi = () => {
           });
           return data.value;
         },
-        { lazy: true }
+        { lazy: true },
       );
 
       const search = (name: string, location: string) => {
@@ -98,13 +91,62 @@ export const useApi = () => {
           });
           return data.value?.data ?? null;
         },
-        { lazy: lazy }
+        { lazy: lazy },
       );
 
       return {
         status,
         courtData: data,
         refresh,
+      };
+    },
+    createBooking: async (data: {
+      courtId: string;
+      date: string;
+      startTime: string;
+      endTime: string;
+    }) => {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch("/api/bookings", {
+        method: "POST",
+        body: data,
+      });
+
+      return {
+        status,
+        data: response.value,
+        error,
+      };
+    },
+    getBookings: async (userId: string = "me") => {
+      const { data, status, refresh } = await useAsyncData(`bookings-${userId}`, async () => {
+        const { data } = await useFetch("/api/bookings", {
+          method: "GET",
+          query: {
+            userId: userId,
+          },
+        });
+        return data.value?.data ?? [];
+      });
+
+      return {
+        status,
+        bookingsData: data,
+        refresh,
+      };
+    },
+    deleteBooking: async (bookingId: string) => {
+      const { data, status, error } = await useFetch(`/api/bookings/${bookingId}`, {
+        method: "DELETE",
+      });
+
+      return {
+        status,
+        data: data.value,
+        error,
       };
     },
   };

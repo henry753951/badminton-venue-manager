@@ -8,7 +8,15 @@ defineRouteMeta({
   openAPI: {
     tags: ["bookings"],
     description: "獲取預訂",
-    parameters: [],
+    parameters: [
+      {
+        in: "path",
+        name: "userId",
+        schema: {
+          type: "string",
+        },
+      },
+    ],
     responses: {
       200: {
         description: "成功",
@@ -41,7 +49,7 @@ defineRouteMeta({
               },
             },
           },
-        }
+        },
       },
     },
   },
@@ -49,9 +57,18 @@ defineRouteMeta({
 
 export default defineEventHandler(async (event) => {
   const db = useDb();
+  const { userId } = getQuery(event) as { userId: string };
+  if (userId !== "me" && event.context.currentUser.roles.includes("admin")) {
+    setResponseStatus(event, 403);
+    return {
+      code: "error",
+      data: [],
+      msg: "無法獲取預訂資料",
+    };
+  }
   try {
     const bookings = await db.query.t_bookings.findMany({
-      where: eq(t_bookings.userId, event.context.currentUser.id),
+      where: eq(t_bookings.userId, userId === "me" ? event.context.currentUser.id : userId),
       columns: {
         timeSlotId: false,
         userId: false,
@@ -76,6 +93,7 @@ export default defineEventHandler(async (event) => {
     return {
       code: "error",
       msg: "無法獲取預訂資料",
+      data: [],
       details: Object.keys(error).length ? error : error.message,
     };
   }

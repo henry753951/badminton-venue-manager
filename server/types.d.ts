@@ -5,6 +5,7 @@ declare module "h3" {
     currentUser: {
       id: string;
       name: string;
+      roles: string[];
     };
   }
 }

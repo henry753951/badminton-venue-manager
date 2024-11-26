@@ -107,15 +107,21 @@ export default defineEventHandler(async (event) => {
     const timeSlots = await db
       .select()
       .from(t_timeSlots)
-      .where(
-        and(
-          eq(t_timeSlots.courtId, court_id),
-          between(t_timeSlots.date, start, end)
-        )
-      )
+      .where(and(eq(t_timeSlots.courtId, court_id), between(t_timeSlots.date, start, end)))
       .orderBy(t_timeSlots.date, t_timeSlots.startTime);
     // 整理結果，將時間段按日期分組
-    const dataMap = new Map<string, { date: string; timeSlots: any[] }>();
+    const dataMap = new Map<
+      string,
+      {
+        date: string;
+        timeSlots: {
+          id: string;
+          startTime: string;
+          endTime: string;
+          type: string;
+        }[];
+      }
+    >();
 
     for (const slot of timeSlots) {
       const dateStr = slot.date.toISOString().split("T")[0]; // 提取日期部分

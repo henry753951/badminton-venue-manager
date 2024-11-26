@@ -77,11 +77,7 @@ export default defineEventHandler(async (event) => {
     const { id } = event.context.params as { id: string };
 
     // 查找球場，根據 ID
-    const [court] = await db
-      .select()
-      .from(t_courts)
-      .where(eq(t_courts.id, id))
-      .limit(1);
+    const [court] = await db.select().from(t_courts).where(eq(t_courts.id, id)).limit(1);
 
     // 如果没有找到对应的球场
     if (!court) {

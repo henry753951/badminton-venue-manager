@@ -83,10 +83,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // Insert the new court into the database
-    const [newCourt] = await db
-      .insert(t_courts)
-      .values(t_courts_values)
-      .returning();
+    const [newCourt] = await db.insert(t_courts).values(t_courts_values).returning();
 
     return {
       code: "success",
@@ -94,11 +91,7 @@ export default defineEventHandler(async (event) => {
       data: newCourt,
     };
   } catch (error: any) {
-    if (
-      error
-        .toString()
-        .includes("duplicate key value violates unique constraint")
-    ) {
+    if (error.toString().includes("duplicate key value violates unique constraint")) {
       return {
         code: "error",
         msg: "球場名稱已存在",

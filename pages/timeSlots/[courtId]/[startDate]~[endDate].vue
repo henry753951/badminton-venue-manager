@@ -1,178 +1,74 @@
 <template>
   <div class="container mx-auto p-4 h-fit">
-    <div class="flex-center">
-      <h1 class="text-2xl font-bold">
-        租借系統
+    <div class="flex-center py-2">
+      <h1 class="text-2xl font-bold flex-center gap-3">
+        <p>{{ courtData?.name }}</p>
+        <Badge>
+          {{ courtData?.location }}
+        </Badge>
       </h1>
     </div>
-    <div class="flex justify-between items-center mb-4">
-      <Button
-        size="small"
-        :text="breakpoints.smallerOrEqual('md').value"
-        @click="changeWeek(-1)"
-      >
-        <Icon
-          name="mdi-chevron-left"
-          class="md:hidden"
-        />
-        <div class="md:block hidden">
-          上一週
-        </div>
-      </Button>
-      <div class="flex-grow px-3 flex-center min-w-0">
-        <div
-          v-if="!breakpoints.smallerOrEqual('md').value"
-          class="text-xl font-bold"
-        >
-          {{ dateRangeDisplay }}
-        </div>
-        <div
-          v-else
-          class="flex justify-between items-center w-full gap-1 overflow-x-auto"
-        >
-          <div
-            v-for="(day, index) in weekSchedule.origin"
-            :key="day.date"
-            :class="{
-              'bg-black dark:bg-white text-white dark:text-black':
-                options.mobile.offsetOfWeek === index,
-            }"
-            class="text-center p-3 rounded-full overflow-hidden w-50px min-w-50px h-50px cursor-pointer"
-            @click="options.mobile.offsetOfWeek = index"
-          >
-            <div class="font-bold text-0.6rem">
-              {{ day.weekDay }}
-            </div>
-            <div class="text-0.4rem">
-              {{ day.date }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <Button
-        size="small"
-        :text="breakpoints.smallerOrEqual('md').value"
-        @click="changeWeek(1)"
-      >
-        <div class="md:block hidden">
-          下一週
-        </div>
-        <Icon
-          name="mdi-chevron-right"
-          class="md:hidden"
-        />
-      </Button>
-    </div>
+
+    <WeekChange
+      :current-date="dateRangeDisplay"
+      @on-prev="changeWeek(-1)"
+      @on-next="changeWeek(1)"
+    />
 
     <div class="flex relative">
       <!-- Left Time labels -->
-      <div class="w-16 relative md:top-60px">
-        <div
-          v-for="hour in timeLabels"
-          :key="hour"
-          class="absolute text-sm text-gray-600 right-0 pr-2"
-          :style="{
-            top: `${(Number(hour) - options.startHour) * options.columnHeight * 2}px`,
-          }"
-        >
-          {{ hour }}:00
-        </div>
+      <div class="w-16 relative top-70px">
+        <TimeLabels
+          :time-labels="timeLabels"
+          :start-hour="options.startHour"
+          :column-height="options.columnHeight"
+          align="right"
+        />
       </div>
 
-      <!-- Schedule grid -->
       <div class="flex-1">
-        <!-- Column headers -->
-        <div
-          v-if="!breakpoints.smallerOrEqual('md').value"
-          class="flex border-b h-60px"
-        >
-          <div
-            v-for="day in weekSchedule.currentView"
-            :key="day.date"
-            class="flex-1 p-2 text-center min-w-[100px]"
-          >
-            <div class="font-bold">
-              {{ day.weekDay }}
-            </div>
-            <div class="text-sm">
-              {{ day.date }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Time slots grid -->
-        <div class="relative top-10px">
-          <!-- Current time indicator -->
-          <div
-            class="absolute w-full border-t-2 border-red-500 z-10"
-            :style="currentTimeLineStyle"
-          ></div>
-
-          <!-- Time slots -->
-          <div
-            class="grid"
-            :style="{
-              gridTemplateColumns: `repeat(${weekSchedule.currentView.length}, 1fr)`,
-              height: `${options.columnHeight * 2 * (options.endHour - options.startHour)}px`,
-            }"
-          >
-            <div
-              v-for="day in weekSchedule.currentView"
-              :key="day.date"
-              class="relative cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-800"
-              :class="{
-                'border-r border-gray-200 dark:border-dark-600':
-                  !breakpoints.smallerOrEqual('md').value &&
-                  day.date !== weekSchedule.currentView[weekSchedule.currentView.length - 1].date,
-              }"
-            >
-              <div
-                v-for="slot in day.timeSlots"
-                :key="slot.id"
-                class="absolute w-full px-1"
-                :style="getSlotStyle(slot)"
-              >
-                <div
-                  class="h-full p-1 text-xs rounded overflow-hidden bg-blue-100 dark:bg-dark-200"
-                >
-                  {{ formatTime(slot.startTime) }} -
-                  {{ formatTime(slot.endTime) }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ViewWeek
+          :week-schedule="weekSchedule"
+          v-model:offset="options.mobile.offsetOfWeek"
+        />
+        <ViewTimeSlots
+          :week-schedule="weekSchedule"
+          :options="options"
+          @click-date="openBookingDialog($event.date, $event.timeSlots)"
+        />
       </div>
 
       <!-- Right Time labels -->
-      <div class="w-16 relative md:top-60px">
-        <div
-          v-for="hour in timeLabels"
-          :key="hour"
-          class="absolute text-sm text-gray-600 left-0 pl-2"
-          :style="{
-            top: `${(Number(hour) - options.startHour) * options.columnHeight * 2}px`,
-          }"
-        >
-          {{ hour }}:00
-        </div>
+      <div class="w-16 relative top-70px">
+        <TimeLabels
+          :time-labels="timeLabels"
+          :start-hour="options.startHour"
+          :column-height="options.columnHeight"
+          align="left"
+        />
       </div>
     </div>
+    <BookingDialog
+      ref="bookingDialogRef"
+      v-model:visible="bookingDialog.visible"
+      :date="bookingDialog.date"
+      :court-data="courtData"
+      :current-time-slots="bookingDialog.timeSlots"
+      :day-end-time="options.endHour"
+      :day-start-time="options.startHour"
+      @on-submit="refetchSchedule"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import {
-  format,
-  parse,
-  addWeeks,
-  startOfWeek,
-  endOfWeek,
-  addDays,
-  isWithinInterval,
-} from "date-fns";
-import { breakpointsTailwind, useBreakpoints, useDateFormat, useNow } from "@vueuse/core";
+import WeekChange from "~/components/TimeSlots/WeekChange.vue";
+import ViewWeek from "~/components/TimeSlots/ViewWeek.vue";
+import ViewTimeSlots from "~/components/TimeSlots/ViewTimeSlots.vue";
+import TimeLabels from "~/components/TimeSlots/TimeLabels.vue";
+import { format, addWeeks, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
+import type { BookingDialog } from "#build/components";
 
 // Page Meta
 definePageMeta({
@@ -183,28 +79,32 @@ definePageMeta({
 const route = useRoute();
 const breadcrumbStore = useBreadcrumbStore();
 const breakpoints = useBreakpoints(breakpointsTailwind);
-const currentTime = useDateFormat(useNow(), "YYYY-MM-DD HH:mm:ss");
 
 // State
 const options = ref({
-  startHour: 6,
-  endHour: 23,
+  startHour: 0,
+  endHour: 24,
   mobile: {
     offsetOfWeek: 0,
   },
   columnHeight: 30,
 });
-
 const currentStartDate = ref(
   startOfWeek(new Date(route.params.startDate as string), { weekStartsOn: 0 }),
 );
 const currentEndDate = ref(
   endOfWeek(new Date(route.params.endDate as string), { weekStartsOn: 0 }),
 );
+const bookingDialogRef = ref<InstanceType<typeof BookingDialog> | null>(null);
+const bookingDialog = ref({
+  visible: false,
+  date: "",
+  timeSlots: null as { id: string; startTime: string; endTime: string; type: string }[] | null,
+});
 
+// Data Fetching
 const { courtData } = await useApi().fetchCourt(route.params.courtId as string, false);
-
-const { scheduleData } = await useApi().fetchSchedule(
+const { scheduleData, refresh: refetchSchedule } = await useApi().fetchSchedule(
   route.params.courtId as string,
   currentStartDate.value,
   currentEndDate.value,
@@ -225,37 +125,15 @@ const weekViewPortOptions = computed(() => {
   }
 });
 
-const currentTimeLineStyle = computed(() => {
-  const now = new Date(currentTime.value);
-  const seconds =
-    now.getHours() * 3600 +
-    now.getMinutes() * 60 +
-    now.getSeconds() -
-    options.value.startHour * 3600;
-
-  const percentage = (seconds / ((options.value.endHour - options.value.startHour) * 3600)) * 100;
-
-  const top = percentage;
-  return {
-    top: `${Math.round(top * 100) / 100}%`,
-  };
-});
-
 const timeLabels = computed(() =>
   Array.from({ length: options.value.endHour - options.value.startHour + 1 }, (_, i) =>
     (options.value.startHour + i).toString().padStart(2, "0"),
   ),
 );
-const isCurrentWeek = computed(() => {
-  const now = new Date(currentTime.value);
-  return isWithinInterval(now, {
-    start: currentStartDate.value,
-    end: currentEndDate.value,
-  });
-});
 
 const dateRangeDisplay = computed(
-  () => `${format(currentStartDate.value, "MM/dd")} - ${format(currentEndDate.value, "MM/dd")}`,
+  () =>
+    `${format(currentStartDate.value, "yyyy/MM/dd")} - ${format(currentEndDate.value, "yyyy/MM/dd")}`,
 );
 
 const weekSchedule = computed(() => {
@@ -270,7 +148,7 @@ const weekSchedule = computed(() => {
         const daySchedule = scheduleData.value?.find((item) => item.date === formattedDate);
 
         return {
-          date: format(currentDate, "MM/dd"),
+          date: format(currentDate, "yyyy/MM/dd"),
           weekDay: format(currentDate, "EEE"),
           timeSlots: daySchedule ? daySchedule.timeSlots : [],
         };
@@ -292,7 +170,7 @@ const weekSchedule = computed(() => {
         const daySchedule = scheduleData.value?.find((item) => item.date === formattedDate);
 
         return {
-          date: format(currentDate, "MM/dd"),
+          date: format(currentDate, "yyyy/MM/dd"),
           weekDay: format(currentDate, "EEE"),
           timeSlots: daySchedule ? daySchedule.timeSlots : [],
         };
@@ -302,33 +180,6 @@ const weekSchedule = computed(() => {
 });
 
 // Methods
-const getMinutesFromTimeString = (timeString: string): number => {
-  const [hours, minutes] = timeString.split(":").map(Number);
-  return hours * 60 + minutes;
-};
-
-const getSlotStyle = (slot: { startTime: string; endTime: string }) => {
-  const startMinutes = getMinutesFromTimeString(slot.startTime);
-  const endMinutes = getMinutesFromTimeString(slot.endTime);
-  const duration = endMinutes - startMinutes;
-
-  const slotStartHour = Math.floor(startMinutes / 60);
-  const slotStartMinute = startMinutes % 60;
-
-  if (slotStartHour < options.value.startHour || slotStartHour >= options.value.endHour)
-    return { display: "none" };
-
-  const top =
-    (((slotStartHour - options.value.startHour) * 60 + slotStartMinute) / 30) *
-    options.value.columnHeight;
-  const height = (duration / 30) * options.value.columnHeight;
-
-  return {
-    top: `${top}px`,
-    height: `${height}px`,
-  };
-};
-
 const changeWeek = (direction: number) => {
   currentStartDate.value = addWeeks(currentStartDate.value, direction);
   currentEndDate.value = addWeeks(currentEndDate.value, direction);
@@ -346,9 +197,14 @@ const updateRouteParams = () => {
   });
 };
 
-const formatTime = (timeString: string): string => {
-  const [hours, minutes] = timeString.split(":");
-  return `${hours}:${minutes}`;
+const openBookingDialog = (
+  date: string,
+  timeSlots: { id: string; startTime: string; endTime: string; type: string }[],
+) => {
+  bookingDialog.value.visible = true;
+  bookingDialog.value.date = date;
+  bookingDialog.value.timeSlots = timeSlots;
+  bookingDialogRef.value?.reset();
 };
 
 // Lifecycle Hooks

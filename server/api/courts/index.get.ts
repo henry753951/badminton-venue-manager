@@ -79,8 +79,8 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           name ? ilike(t_courts.name, `%${name}%`) : undefined,
-          location ? ilike(t_courts.location, `%${location}%`) : undefined
-        )
+          location ? ilike(t_courts.location, `%${location}%`) : undefined,
+        ),
       );
 
     return {

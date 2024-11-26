@@ -1,18 +1,12 @@
 import { defineEventHandler, readBody } from "h3";
 import { useDb } from "~/server/utils/db";
 import { t_bookings, t_timeSlots } from "~/server/database/schema";
-import {
-  isValidTimeSlot,
-  isStartBeforeEnd,
-  calculateTimeSlots,
-} from "@/utils/validators";
+import { isValidTimeSlot, isStartBeforeEnd, calculateTimeSlots } from "@/utils/validators";
 import { and, eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 const querySchema = z.object({
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "日期必須是有效的 YYYY-MM-DD 格式"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期必須是有效的 YYYY-MM-DD 格式"),
   startTime: z.string().regex(/^\d{1,2}:\d{2}$/, "時間必須是有效的 HH:mm 格式"),
   endTime: z.string().regex(/^\d{1,2}:\d{2}$/, "時間必須是有效的 HH:mm 格式"),
   courtId: z.string().min(1, "courtId 是必填參數").describe("球場ID"),
@@ -83,16 +77,14 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const db = useDb();
   const body = await readBody(event);
-  const { date, startTime, endTime, courtId } = querySchema.parse(body);
 
   try {
+    const { date, startTime, endTime, courtId } = querySchema.parse(body);
     // 啟動事務
     return await db.transaction(async (trx) => {
       // 驗證時間格式
       if (!isValidTimeSlot(startTime) || !isValidTimeSlot(endTime)) {
-        throw new Error(
-          "開始時間和結束時間必須是30分鐘為單位，例如 09:00, 09:30"
-        );
+        throw new Error("開始時間和結束時間必須是30分鐘為單位，例如 09:00, 09:30");
       }
 
       // 驗證開始時間是否早於結束時間
@@ -107,12 +99,7 @@ export default defineEventHandler(async (event) => {
       const notAvailableSlots = await trx
         .select()
         .from(t_timeSlots)
-        .where(
-          and(
-            eq(t_timeSlots.courtId, courtId),
-            eq(t_timeSlots.date, new Date(date))
-          )
-        );
+        .where(and(eq(t_timeSlots.courtId, courtId), eq(t_timeSlots.date, new Date(date))));
 
       // 找出不可用的時間段
       const notAvailableTimeSlots = Array.from(
@@ -121,8 +108,8 @@ export default defineEventHandler(async (event) => {
             .map((slot) => {
               return calculateTimeSlots(slot.startTime, slot.endTime);
             })
-            .flat()
-        )
+            .flat(),
+        ),
       );
 
       // 找出可用的時間段
@@ -144,10 +131,7 @@ export default defineEventHandler(async (event) => {
         type: "normal",
       });
 
-      const [newTimeSlots] = await trx
-        .insert(t_timeSlots)
-        .values(t_timeSlots_values)
-        .returning();
+      const [newTimeSlots] = await trx.insert(t_timeSlots).values(t_timeSlots_values).returning();
 
       // 創建預訂記錄
       const t_bookings_schema = createInsertSchema(t_bookings);
@@ -156,10 +140,24 @@ export default defineEventHandler(async (event) => {
         timeSlotId: newTimeSlots.id,
       });
 
-      const [newBookings] = await trx
-        .insert(t_bookings)
-        .values(t_bookings_values)
-        .returning();
+      const [newBookings] = await trx.insert(t_bookings).values(t_bookings_values).returning();
+
+      const currentBookings = await trx
+        .select()
+        .from(t_timeSlots)
+        .where(and(eq(t_timeSlots.courtId, courtId), eq(t_timeSlots.date, new Date(date))));
+
+      // 查看newBookings是否有重疊
+      const newBookingsTimeSlots = calculateTimeSlots(newTimeSlots.startTime, newTimeSlots.endTime);
+      const isOverlap = currentBookings.some((slot) => {
+        if (slot.id === newTimeSlots.id) return false;
+        const timeSlots = calculateTimeSlots(slot.startTime, slot.endTime);
+        return timeSlots.some((slot) => newBookingsTimeSlots.includes(slot));
+      });
+      // 如果有重疊，拋出錯誤
+      if (isOverlap) {
+        throw new Error("時間段已被預訂");
+      }
 
       // 如果一切成功，返回結果
       return {

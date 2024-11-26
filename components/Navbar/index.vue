@@ -9,7 +9,7 @@
         class="flex items-center"
       >
         <span class="text-xl font-bold text-gray-800 dark:text-white">
-          場地租借系統
+          {{ brandName }}
         </span>
       </NuxtLink>
     </div>
@@ -17,22 +17,12 @@
     <!-- 桌面導航鏈接 -->
     <div class="hidden md:flex space-x-6">
       <NuxtLink
-        to="/"
+        v-for="link in desktopNavLinks"
+        :key="link.to"
+        :to="link.to"
         class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
       >
-        首頁
-      </NuxtLink>
-      <NuxtLink
-        to="/coach-lessons"
-        class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
-      >
-        教練課程
-      </NuxtLink>
-      <NuxtLink
-        to="/timeSlots"
-        class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
-      >
-        場地租借
+        {{ link.label }}
       </NuxtLink>
     </div>
 
@@ -40,28 +30,23 @@
     <div class="flex items-center space-x-4 ms-auto">
       <!-- 登入/註冊 按鈕 -->
       <template v-if="!isAuthenticated">
-        <NuxtLink to="/login">
+        <NuxtLink 
+          v-for="button in authButtons" 
+          :key="button.label" 
+          :to="button.to"
+        >
           <Button
-            label="登入"
-            class="p-button-outlined p-button-sm text-gray-700 dark:text-gray-300"
-          />
-        </NuxtLink>
-        <NuxtLink to="/register">
-          <Button
-            label="註冊"
-            class="p-button-primary p-button-sm"
+            :label="button.label"
+            :class="button.class"
           />
         </NuxtLink>
       </template>
 
       <!-- 用戶菜單 -->
       <template v-else>
-        <Dropdown
-          :options="userMenuOptions"
-          option-label="label"
-          placeholder="用戶選單"
-          class="text-gray-700 dark:text-gray-300"
-          dropdown-icon="pi pi-chevron-down"
+        <SplitButton 
+          :model="userMenuOptions"
+          label="用戶選單"
         />
       </template>
 
@@ -103,46 +88,27 @@
     >
       <div class="flex flex-col space-y-4 p-4 h-full">
         <NuxtLink
-          to="/"
+          v-for="link in mobileNavLinks"
+          :key="link.to"
+          :to="link.to"
           class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
           @click="toggleMobileMenu"
         >
-          首頁
-        </NuxtLink>
-        <NuxtLink
-          to="/coach-lessons"
-          class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
-          @click="toggleMobileMenu"
-        >
-          教練課程
-        </NuxtLink>
-        <NuxtLink
-          to="/timeSlots"
-          class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
-          @click="toggleMobileMenu"
-        >
-          場地租借
+          {{ link.label }}
         </NuxtLink>
         <hr class="border-gray-300 dark:border-gray-600" />
         <div class="h-full flex flex-col gap-2">
           <div>
             <template v-if="!isAuthenticated">
-              <NuxtLink
-                to="/login"
+              <NuxtLink 
+                v-for="button in authButtons" 
+                :key="button.label"
+                :to="button.to"
                 @click="toggleMobileMenu"
               >
                 <Button
-                  label="登入"
-                  class="p-button-outlined p-button-sm w-full"
-                />
-              </NuxtLink>
-              <NuxtLink
-                to="/register"
-                @click="toggleMobileMenu"
-              >
-                <Button
-                  label="註冊"
-                  class="p-button-primary p-button-sm w-full"
+                  :label="button.label"
+                  :class="button.class"
                 />
               </NuxtLink>
             </template>
@@ -172,7 +138,54 @@
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref, computed } from "vue";
+
+// 定義介面和類型
+interface NavLink {
+  label: string
+  to: string
+}
+
+interface AuthButton {
+  label: string
+  to: string
+  class: string
+}
+
+interface UserMenuItem {
+  label: string
+  command: () => void
+}
+
+// 品牌名稱
+const brandName = "場地租借系統";
+
+// 桌面導航連結
+const desktopNavLinks: NavLink[] = [
+  { label: "首頁", to: "/" },
+  { label: "教練課程", to: "/coach-lessons" },
+  { label: "場地租借", to: "/timeSlots" }
+];
+
+// 移動設備導航連結
+const mobileNavLinks: NavLink[] = [...desktopNavLinks];
+
+// 登入/註冊按鈕
+const authButtons: AuthButton[] = [
+  { 
+    label: "登入", 
+    to: "/login", 
+    class: "p-button-outlined p-button-sm text-gray-700 dark:text-gray-300" 
+  },
+  { 
+    label: "註冊", 
+    to: "/register", 
+    class: "p-button-primary p-button-sm" 
+  }
+];
+
+// 模擬認證狀態（實際應用中從真實的認證服務獲取）
 const {
   isAuthenticated,
   logout: authLogout,
@@ -184,19 +197,20 @@ const {
 };
 
 const mobileMenuVisible = ref(false);
-const router = useRouter();
 
 const colorMode = useColorMode();
 
+// 切換顏色模式
 const toggleColorMode = () => {
-  const modes = ["light", "dark", "system"];
+  const modes = ["light", "dark", "system"] as const;
   const currentMode = colorMode.preference;
-  const nextMode = modes[(modes.indexOf(currentMode) + 1) % modes.length];
+  const nextMode = modes[(modes.indexOf(currentMode as any) + 1) % modes.length];
   colorMode.preference = nextMode;
 };
 
+// 根據顏色模式選擇圖標
 const colorModeIcon = computed(() => {
-  switch (colorMode.preference) {
+  switch (colorMode.value) {
     case "light":
       return "line-md:moon-filled-to-sunny-filled-transition";
     case "dark":
@@ -208,21 +222,21 @@ const colorModeIcon = computed(() => {
   }
 });
 
-// 移動設備菜單切換
+// 切換移動設備菜單
 const toggleMobileMenu = () => {
   mobileMenuVisible.value = !mobileMenuVisible.value;
 };
 
 // 用戶菜單選項
-const userMenuOptions = ref([
-  { label: "我的課程", command: () => router.push("/my-lessons") },
-  { label: "我的租借", command: () => router.push("/my-rentals") },
-  { label: "設定", command: () => router.push("/settings") },
+const userMenuOptions = ref<UserMenuItem[]>([
+  { label: "我的課程", command: () => navigateTo("/user/me/lessons") },
+  { label: "我的租借", command: () => navigateTo("/user/me/bookings") },
+  { label: "設定", command: () => navigateTo("/settings") },
   {
     label: "登出",
     command: () => {
       authLogout();
-      router.push("/");
+      navigateTo("/");
     },
   },
 ]);
@@ -230,7 +244,7 @@ const userMenuOptions = ref([
 // 登出函數
 const logout = () => {
   authLogout();
-  router.push("/");
+  navigateTo("/");
 };
 </script>
 
