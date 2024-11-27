@@ -3,7 +3,7 @@ import { defineNuxtModule } from "@nuxt/kit";
 
 export default defineNuxtModule({
   setup(options, nuxt) {
-    nuxt.hook("ready", async (nuxt) => {
+    nuxt.hook("nitro:init", async (nuxt) => {
       const runtimeConfig = nuxt.options.runtimeConfig;
       const includes = [
         "auth_secret",

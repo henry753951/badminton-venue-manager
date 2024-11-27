@@ -5,13 +5,12 @@ import * as schema from "../database/schema";
 let db: NodePgDatabase<typeof schema> | null;
 
 export function useDb() {
-  const config = useRuntimeConfig();
   if (db) return db;
 
-  if (!config.db_url) throw new Error("Missing db_url in runtime config");
+  if (!process.env.DATABASE_URL) throw new Error("Missing db_url in runtime config");
   const client = {
     connection: {
-      connectionString: config.db_url,
+      connectionString: process.env.DATABASE_URL,
       ssl: true,
     },
     schema: schema,

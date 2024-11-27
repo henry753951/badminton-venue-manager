@@ -8,15 +8,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    db_url: process.env.DATABASE_URL,
-    auth_secret: process.env.AUTH_SECRET,
     auth_origin: process.env.AUTH_ORIGIN,
-    line_client_id: process.env.LINE_CLIENT_ID,
-    line_client_secret: process.env.LINE_CLIENT_SECRET,
-    google_client_id: process.env.GOOGLE_CLIENT_ID,
-    google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    discord_client_id: process.env.DISCORD_CLIENT_ID,
-    discord_client_secret: process.env.DISCORD_CLIENT_SECRET,
   },
   primevue: {
     components: {

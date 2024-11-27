@@ -4,22 +4,22 @@ import GoogleProvider from "next-auth/providers/google";
 import DiscordProvider from "next-auth/providers/discord";
 
 export default NuxtAuthHandler({
-  secret: useRuntimeConfig().auth_secret,
+  secret: process.env.AUTH_SECRET,
   providers: [
     // @ts-expect-error it's expected Use .default here for it to work during SSR.
     LineProvider.default({
-      clientId: useRuntimeConfig().line_client_id,
-      clientSecret: useRuntimeConfig().line_client_secret,
+      clientId: process.env.LINE_CLIENT_ID,
+      clientSecret: process.env.LINE_CLIENT_SECRET,
     }),
     // @ts-expect-error it's expected Use .default here for it to work during SSR.
     GoogleProvider.default({
-      clientId: useRuntimeConfig().google_client_id,
-      clientSecret: useRuntimeConfig().google_client_secret,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     // @ts-expect-error it's expected Use .default here for it to work during SSR.
     DiscordProvider.default({
-      clientId: useRuntimeConfig().discord_client_id,
-      clientSecret: useRuntimeConfig().discord_client_secret,
+      clientId: process.env.DISCORD_CLIENT_ID,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET,
     }),
   ],
   callbacks: {
