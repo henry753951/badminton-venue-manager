@@ -40,6 +40,7 @@ export default defineNuxtConfig({
   ssr: false,
   auth: {
     originEnvKey: "NUXT_AUTH_ORIGIN",
+    baseURL: "https://je-badminton-venue-manager.hongyu.dev",
     provider: {
       type: "authjs",
       trustHost: false,
