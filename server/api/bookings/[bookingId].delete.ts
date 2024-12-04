@@ -60,7 +60,14 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const db = useDb();
   const bookingId = getRouterParam(event, "bookingId");
-
+  if (!event.context.currentUser) {
+    setResponseStatus(event, 403);
+    return {
+      code: "error",
+      data: [],
+      msg: "請先登入",
+    };
+  }
   if (!bookingId) {
     setResponseStatus(event, 400);
     return {

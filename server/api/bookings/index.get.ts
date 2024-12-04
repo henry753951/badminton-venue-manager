@@ -10,7 +10,7 @@ defineRouteMeta({
     description: "獲取預訂",
     parameters: [
       {
-        in: "path",
+        in: "query",
         name: "userId",
         schema: {
           type: "string",
@@ -58,6 +58,14 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const db = useDb();
   const { userId } = getQuery(event) as { userId: string };
+  if (!event.context.currentUser) {
+    setResponseStatus(event, 403);
+    return {
+      code: "error",
+      data: [],
+      msg: "請先登入",
+    };
+  }
   if (userId !== "me" && event.context.currentUser.roles.includes("admin")) {
     setResponseStatus(event, 403);
     return {

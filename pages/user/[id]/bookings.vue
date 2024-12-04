@@ -110,12 +110,11 @@
 
 <script setup lang="ts">
 import { formatDate } from "date-fns";
-import { ref } from "vue";
-import { useRoute } from "vue-router";
+definePageMeta({ name: "user-bookings", middleware: "auth" });
 
 const route = useRoute();
 const userId = ref(route.params.id as string);
-const { bookingsData, refresh } = await useApi().getBookings(userId.value);
+const { bookingsData, refresh } = await useApi().fetchBookings(userId.value);
 
 const cancelBooking = async (bookingId: string) => {
   const response = await useApi().deleteBooking(bookingId);
@@ -124,7 +123,7 @@ const cancelBooking = async (bookingId: string) => {
 
 const createNewBooking = () => {
   navigateTo({
-    name: "timeSlots-courts"
+    name: "timeSlots-courts",
   });
 };
 </script>

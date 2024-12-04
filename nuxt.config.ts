@@ -32,7 +32,10 @@ export default defineNuxtConfig({
   ssr: false,
   auth: {
     originEnvKey: "NUXT_AUTH_ORIGIN",
-    baseURL: "https://je-badminton-venue-manager.hongyu.dev",
+    baseURL:
+      process.env.NODE_ENV === "production"
+        ? "https://je-badminton-venue-manager.hongyu.dev"
+        : undefined,
     provider: {
       type: "authjs",
       trustHost: false,

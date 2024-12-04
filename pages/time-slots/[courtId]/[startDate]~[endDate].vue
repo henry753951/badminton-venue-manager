@@ -34,7 +34,7 @@
         <ViewTimeSlots
           :week-schedule="weekSchedule"
           :options="options"
-          @click-date="openBookingDialog($event.date, $event.timeSlots)"
+          @click-date="bookingDialogRef?.open($event.date, $event.timeSlots)"
         />
       </div>
 
@@ -50,10 +50,7 @@
     </div>
     <BookingDialog
       ref="bookingDialogRef"
-      v-model:visible="bookingDialog.visible"
-      :date="bookingDialog.date"
       :court-data="courtData"
-      :current-time-slots="bookingDialog.timeSlots"
       :day-end-time="options.endHour"
       :day-start-time="options.startHour"
       @on-submit="refetchSchedule"
@@ -96,18 +93,13 @@ const currentEndDate = ref(
   endOfWeek(new Date(route.params.endDate as string), { weekStartsOn: 0 }),
 );
 const bookingDialogRef = ref<InstanceType<typeof BookingDialog> | null>(null);
-const bookingDialog = ref({
-  visible: false,
-  date: "",
-  timeSlots: null as { id: string; startTime: string; endTime: string; type: string }[] | null,
-});
-
+  
 // Data Fetching
-const { courtData } = await useApi().fetchCourt(route.params.courtId as string, false);
+const { courtData } = await useApi().fetchCourt(ref(route.params.courtId as string));
 const { scheduleData, refresh: refetchSchedule } = await useApi().fetchSchedule(
-  route.params.courtId as string,
-  currentStartDate.value,
-  currentEndDate.value,
+  ref(route.params.courtId as string),
+  currentStartDate,
+  currentEndDate,
 );
 
 // Computed Properties
@@ -197,15 +189,6 @@ const updateRouteParams = () => {
   });
 };
 
-const openBookingDialog = (
-  date: string,
-  timeSlots: { id: string; startTime: string; endTime: string; type: string }[],
-) => {
-  bookingDialog.value.visible = true;
-  bookingDialog.value.date = date;
-  bookingDialog.value.timeSlots = timeSlots;
-  bookingDialogRef.value?.reset();
-};
 
 // Lifecycle Hooks
 onMounted(async () => {

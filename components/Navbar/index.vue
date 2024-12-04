@@ -17,8 +17,7 @@
     <!-- 桌面導航鏈接 -->
     <div class="hidden md:flex space-x-6">
       <NuxtLink
-        v-for="link in desktopNavLinks"
-        :key="link.to"
+        v-for="link in navLinks"
         :to="link.to"
         class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
       >
@@ -30,24 +29,42 @@
     <div class="flex items-center space-x-4 ms-auto">
       <!-- 登入/註冊 按鈕 -->
       <template v-if="!isAuthenticated">
-        <NuxtLink 
-          v-for="button in authButtons" 
-          :key="button.label" 
-          :to="button.to"
-        >
-          <Button
-            :label="button.label"
-            :class="button.class"
-          />
+        <NuxtLink :to="{ name: 'signIn' }">
+          <Button label="登入" />
         </NuxtLink>
       </template>
 
       <!-- 用戶菜單 -->
       <template v-else>
-        <SplitButton 
+        <SplitButton
           :model="userMenuOptions"
-          label="用戶選單"
-        />
+          rounded
+          severity="secondary"
+          size="small"
+        >
+          <Avatar
+            :label="authData?.user?.avatar_url ? undefined : (authData?.user?.name?.[0] ?? '')"
+            :image="authData?.user?.avatar_url ?? undefined"
+            style="background-color: #dee9fc; color: #1a2551"
+            shape="circle"
+          />
+          <Icon
+            v-if="authData?.user?.roles.includes('admin')"
+            name="solar:crown-bold"
+            class="text-amber"
+          />
+          <Icon
+            v-if="authData?.user?.roles.includes('coach')"
+            name="material-symbols:sports-gymnastics-rounded"
+            class="text-amber"
+          />
+          <div
+            text-nowrap
+            whitespace-nowrap
+          >
+            {{ authData?.user?.name }}
+          </div>
+        </SplitButton>
       </template>
 
       <!-- 漢堡菜單（移動設備） -->
@@ -88,8 +105,7 @@
     >
       <div class="flex flex-col space-y-4 p-4 h-full">
         <NuxtLink
-          v-for="link in mobileNavLinks"
-          :key="link.to"
+          v-for="link in navLinks"
           :to="link.to"
           class="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
           @click="toggleMobileMenu"
@@ -100,16 +116,11 @@
         <div class="h-full flex flex-col gap-2">
           <div>
             <template v-if="!isAuthenticated">
-              <NuxtLink 
-                v-for="button in authButtons" 
-                :key="button.label"
-                :to="button.to"
+              <NuxtLink
+                :to="{ name: 'signIn' }"
                 @click="toggleMobileMenu"
               >
-                <Button
-                  :label="button.label"
-                  :class="button.class"
-                />
+                <Button label="登入" />
               </NuxtLink>
             </template>
             <template v-else>
@@ -140,60 +151,68 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import type { RouteLocationRaw } from "vue-router";
 
 // 定義介面和類型
 interface NavLink {
-  label: string
-  to: string
+  label: string;
+  to: string | RouteLocationRaw;
 }
-
-interface AuthButton {
-  label: string
-  to: string
-  class: string
-}
-
 interface UserMenuItem {
-  label: string
-  command: () => void
+  label: string;
+  command: () => void;
 }
 
 // 品牌名稱
 const brandName = "場地租借系統";
 
 // 桌面導航連結
-const desktopNavLinks: NavLink[] = [
-  { label: "首頁", to: "/" },
-  { label: "教練課程", to: "/coach-lessons" },
-  { label: "場地租借", to: "/timeSlots" }
-];
-
-// 移動設備導航連結
-const mobileNavLinks: NavLink[] = [...desktopNavLinks];
-
-// 登入/註冊按鈕
-const authButtons: AuthButton[] = [
-  { 
-    label: "登入", 
-    to: "/login", 
-    class: "p-button-outlined p-button-sm text-gray-700 dark:text-gray-300" 
+const baseNavLinks: NavLink[] = [
+  {
+    label: "首頁",
+    to: {
+      name: "home",
+    },
   },
-  { 
-    label: "註冊", 
-    to: "/register", 
-    class: "p-button-primary p-button-sm" 
-  }
+  {
+    label: "教練課程",
+    to: {
+      name: "coachLessons",
+    },
+  },
+  {
+    label: "場地租借",
+    to: {
+      name: "timeSlots-courts",
+    },
+  },
 ];
 
-// 模擬認證狀態（實際應用中從真實的認證服務獲取）
+const navLinks = computed(() => [
+  ...baseNavLinks,
+  ...(authData.value?.user.roles.includes("admin")
+    ? [
+        {
+          label: "管理後台",
+          to: {
+            name: "dashboard",
+          },
+        },
+      ]
+    : []),
+]);
+
+const auth = useAuth();
 const {
   isAuthenticated,
   logout: authLogout,
-  user,
+  authData,
 } = {
-  isAuthenticated: true,
-  logout: () => {},
-  user: { name: "John Doe" },
+  isAuthenticated: computed(() => auth.status.value === "authenticated"),
+  logout: () => {
+    auth.signOut();
+  },
+  authData: auth.data,
 };
 
 const mobileMenuVisible = ref(false);
@@ -236,7 +255,6 @@ const userMenuOptions = ref<UserMenuItem[]>([
     label: "登出",
     command: () => {
       authLogout();
-      navigateTo("/");
     },
   },
 ]);
@@ -244,8 +262,10 @@ const userMenuOptions = ref<UserMenuItem[]>([
 // 登出函數
 const logout = () => {
   authLogout();
-  navigateTo("/");
 };
+
+// Lifecycle hooks
+onMounted(() => {});
 </script>
 
 <style scoped>

@@ -13,8 +13,14 @@
         上一週
       </div>
     </Button>
-    <div class="flex-grow px-3 flex-center min-w-0">
-      <div>{{ currentDate }}</div>
+    <div class="flex-grow px-3 flex-center min-w-0 flex-col gap-3">
+      <div
+        font-bold
+        text-lg
+      >
+        {{ currentDate }}
+      </div>
+      <slot />
     </div>
     <Button
       size="small"

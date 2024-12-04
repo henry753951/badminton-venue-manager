@@ -1,4 +1,3 @@
-export * from "./schemas/roles";
 export * from "./schemas/users";
 export * from "./schemas/userRoles";
 export * from "./schemas/bookings";

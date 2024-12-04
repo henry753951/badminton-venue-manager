@@ -3,7 +3,10 @@
     <Navbar h-4rem />
     <div
       pt-4rem
-      h-full
+      flex
+      flex-col
+      h-fit
+      min-h-dvh
     >
       <Breadcrumb
         v-if="breadcrumbStore.breadcrumbs.length > 0"
@@ -31,9 +34,7 @@
             :target="item.target"
             v-bind="props.action"
           >
-            <span class="text-surface-700 dark:text-surface-0">{{
-              item.label
-            }}</span>
+            <span class="text-surface-700 dark:text-surface-0">{{ item.label }}</span>
           </a>
         </template>
       </Breadcrumb>

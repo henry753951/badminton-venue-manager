@@ -1,7 +1,8 @@
 import { definePreset } from "@primevue/themes";
 import Lara from "@primevue/themes/lara";
+import Aura from "@primevue/themes/aura";
 
-const AppPreset = definePreset(Lara, {
+const AppPreset = definePreset(Aura, {
   primitive: {
     borderRadius: {
       none: "0",
@@ -560,8 +561,7 @@ const AppPreset = definePreset(Lara, {
           focusColor: "rgba(255,255,255,.87)",
         },
         focusRing: {
-          shadow:
-            "0 0 0 0.2rem color-mix(in srgb, {primary.color}, transparent 80%)",
+          shadow: "0 0 0 0.2rem color-mix(in srgb, {primary.color}, transparent 80%)",
         },
         mask: {
           background: "rgba(0,0,0,0.6)",

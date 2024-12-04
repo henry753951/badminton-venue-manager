@@ -58,6 +58,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  name: "coachLessons",
+});
+
 // Composables
 const breadcrumbStore = useBreadcrumbStore();
 

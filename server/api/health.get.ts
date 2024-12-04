@@ -1,3 +1,5 @@
+import { getToken } from "#auth";
 export default defineEventHandler(async (event) => {
-  return "Hello Nitro";
+  const token = getToken({ event });
+  return token;
 });

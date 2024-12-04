@@ -77,7 +77,14 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const db = useDb();
   const body = await readBody(event);
-
+  if (!event.context.currentUser) {
+    setResponseStatus(event, 403);
+    return {
+      code: "error",
+      data: [],
+      msg: "請先登入",
+    };
+  }
   try {
     const { date, startTime, endTime, courtId } = querySchema.parse(body);
     // 啟動事務
@@ -136,7 +143,7 @@ export default defineEventHandler(async (event) => {
       // 創建預訂記錄
       const t_bookings_schema = createInsertSchema(t_bookings);
       const t_bookings_values = t_bookings_schema.parse({
-        userId: event.context.currentUser.id,
+        userId: event.context.currentUser!.id,
         timeSlotId: newTimeSlots.id,
       });
 
@@ -148,11 +155,11 @@ export default defineEventHandler(async (event) => {
         .where(and(eq(t_timeSlots.courtId, courtId), eq(t_timeSlots.date, new Date(date))));
 
       // 查看newBookings是否有重疊
-      const newBookingsTimeSlots = calculateTimeSlots(newTimeSlots.startTime, newTimeSlots.endTime);
+      const newBookingTimeSlots = calculateTimeSlots(newTimeSlots.startTime, newTimeSlots.endTime);
       const isOverlap = currentBookings.some((slot) => {
         if (slot.id === newTimeSlots.id) return false;
         const timeSlots = calculateTimeSlots(slot.startTime, slot.endTime);
-        return timeSlots.some((slot) => newBookingsTimeSlots.includes(slot));
+        return timeSlots.some((slot) => newBookingTimeSlots.includes(slot));
       });
       // 如果有重疊，拋出錯誤
       if (isOverlap) {

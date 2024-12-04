@@ -7,14 +7,16 @@
   >
     <template #header>
       <div class="inline-flex items-center justify-center gap-2">
-        <span class="font-bold whitespace-nowrap">租借時間</span>
+        <span class="font-bold whitespace-nowrap">{{
+          type == "booking" ? "租借時間" : "課程時間"
+        }}</span>
       </div>
     </template>
 
     <div class="mb-4">
       <div class="flex items-center gap-4 mb-4">
         <label class="font-semibold w-24">日期</label>
-        <span>{{ date }}</span>
+        <span>{{ dialogData.date }}</span>
       </div>
 
       <div class="flex items-center gap-4 mb-4">
@@ -26,12 +28,13 @@
         <label
           for="startTime"
           class="font-semibold w-24"
-        >開始時間</label>
+        > 開始時間 </label>
         <Dropdown
+          placeholder="選擇開始時間"
+          empty-message="無可用時間"
+          class="flex-auto"
           v-model="selectedStartTime"
           :options="availableStartTimes"
-          placeholder="選擇開始時間"
-          class="flex-auto"
           @change="validSelectedTime"
         />
       </div>
@@ -40,12 +43,13 @@
         <label
           for="endTime"
           class="font-semibold w-24"
-        >結束時間</label>
+        > 結束時間 </label>
         <Dropdown
-          v-model="selectedEndTime"
-          :options="availableEndTimes"
+          empty-message="無可用時間"
           placeholder="選擇結束時間"
           class="flex-auto"
+          v-model="selectedEndTime"
+          :options="availableEndTimes"
           :disabled="!selectedStartTime"
           @change="validSelectedTime"
         />
@@ -56,26 +60,71 @@
         <BookingTimeline
           :day-start-time="dayStartTime"
           :day-end-time="dayEndTime"
-          :current-time-slots="currentTimeSlots"
+          :current-time-slots="dialogData.timeSlots"
           :preview-start-time="selectedStartTime"
           :preview-end-time="selectedEndTime"
         />
       </div>
     </div>
+    <!-- 教練課程 only -->
+
+    <template v-if="type == 'lesson'">
+      <div class="flex gap-4 items-center mb-4">
+        <label class="font-semibold w-24">課程標題</label>
+        <InputText
+          v-model="lesson.title"
+          placeholder="請輸入課程標題"
+          class="flex-auto"
+        />
+      </div>
+      <div class="flex gap-4">
+        <label class="font-semibold w-24 pt-1">課程內容</label>
+        <Textarea
+          v-model="lesson.content"
+          placeholder="請輸入課程內容"
+          class="flex-auto"
+        />
+      </div>
+    </template>
 
     <template #footer>
-      <Button
-        label="取消"
-        text
-        severity="secondary"
-        @click="visible = false"
-      />
-      <Button
-        :loading="isSubmitting"
-        label="確認租借"
-        @click="confirmBooking"
-        :disabled="!canSubmit || isSubmitting"
-      />
+      <div
+        flex
+        items-center
+        justify-between
+        w-full
+      >
+        <div class="flex-center bg-light-6 py-3 px-3 rounded-full">
+          <Avatar
+            shape="circle"
+            class="mr-2"
+            :label="
+              auth.data.value?.user.avatar_url
+                ? undefined
+                : (auth.data.value?.user?.name?.[0] ?? '')
+            "
+            :image="auth.data.value?.user.avatar_url || undefined"
+          />
+          <span>{{ auth.data.value?.user.name }}</span>
+        </div>
+        <div
+          flex
+          gap-3
+        >
+          <Button
+            label="取消"
+            text
+            severity="secondary"
+            @click="visible = false"
+          />
+          <Button
+            :loading="isSubmitting"
+            :label="type == 'booking' ? '確認租借' : '確認課程'"
+            @click="type == 'booking' ? confirm.booking() : confirm.lessonCreate()"
+            :disabled="!canSubmit || isSubmitting"
+          />
+        </div>
+      </div>
     </template>
   </Dialog>
 </template>
@@ -88,10 +137,6 @@ import Button from "primevue/button";
 const visible = defineModel<boolean>("visible");
 
 const props = defineProps({
-  date: {
-    type: String,
-    required: true,
-  },
   courtData: {
     type: Object as PropType<{
       id: string;
@@ -100,18 +145,7 @@ const props = defineProps({
     } | null>,
     required: true,
   },
-  currentTimeSlots: {
-    type: Array as PropType<
-      | {
-          id: string;
-          startTime: string;
-          endTime: string;
-          type: string;
-        }[]
-      | null
-    >,
-    default: null,
-  },
+
   dayStartTime: {
     type: Number,
     default: 6,
@@ -120,36 +154,32 @@ const props = defineProps({
     type: Number,
     default: 23,
   },
+  type: {
+    type: String as PropType<"booking" | "lesson">,
+    default: "booking",
+  },
 });
 
 const emits = defineEmits(["onSubmit"]);
+// Composables
+const auth = useAuth();
 
+// States
 const isSubmitting = ref(false);
+const dialogData = ref({
+  date: "",
+  timeSlots: null as { id: string; startTime: string; endTime: string; type: string }[] | null,
+});
 
-// 產生時間清單（每30分鐘一個）
-const generateTimeOptions = (start: number, end: number) => {
-  const [startHour, startMinute] = [start, 0];
-  const [endHour, endMinute] = [end, 0];
-  const times = [];
-
-  for (let hour = startHour; hour <= endHour; hour++) {
-    if (hour === startHour && startMinute > 0) {
-      times.push(`${hour.toString().padStart(2, "0")}:30`);
-    } else if (hour === endHour && endMinute === 0) {
-      times.push(`${hour.toString().padStart(2, "0")}:00`);
-      break;
-    } else {
-      times.push(`${hour.toString().padStart(2, "0")}:00`);
-      times.push(`${hour.toString().padStart(2, "0")}:30`);
-    }
-  }
-  return times;
-};
+const lesson = ref({
+  title: "",
+  content: "",
+});
 
 const availableStartTimes = computed(() => {
   const times = generateTimeOptions(props.dayStartTime, props.dayEndTime);
-  if (props.currentTimeSlots) {
-    const bookedTimes = props.currentTimeSlots
+  if (dialogData.value.timeSlots) {
+    const bookedTimes = dialogData.value.timeSlots
       .map((slot) => {
         return calculateTimeSlots(slot.startTime, slot.endTime);
       })
@@ -158,12 +188,13 @@ const availableStartTimes = computed(() => {
   }
   return times;
 });
+
 const availableEndTimes = computed(() => {
   if (!selectedStartTime.value) return [];
-  let times = availableStartTimes.value;
+  let times = [...availableStartTimes.value];
   let endTimeIndex = times.length;
-  if (props.currentTimeSlots) {
-    const bookedStartTimes = props.currentTimeSlots.map((slot) => formatTime(slot.startTime));
+  if (dialogData.value.timeSlots) {
+    const bookedStartTimes = dialogData.value.timeSlots.map((slot) => formatTime(slot.startTime));
     times.push(...bookedStartTimes);
     times = times.filter(
       (time) => timeStringToMinutes(time) > timeStringToMinutes(selectedStartTime.value || "00:00"),
@@ -187,30 +218,29 @@ const canSubmit = computed(
     timeStringToMinutes(selectedStartTime.value) < timeStringToMinutes(selectedEndTime.value),
 );
 
+// Methods
+const generateTimeOptions = (start: number, end: number) => {
+  const [startHour, startMinute] = [start, 0];
+  const [endHour, endMinute] = [end, 0];
+  const times = [];
+
+  for (let hour = startHour; hour <= endHour; hour++) {
+    if (hour === startHour && startMinute > 0) {
+      times.push(`${hour.toString().padStart(2, "0")}:30`);
+    } else if (hour === endHour && endMinute === 0) {
+      times.push(`${hour.toString().padStart(2, "0")}:00`);
+      break;
+    } else {
+      times.push(`${hour.toString().padStart(2, "0")}:00`);
+      times.push(`${hour.toString().padStart(2, "0")}:30`);
+    }
+  }
+  return times;
+};
+
 const timeStringToMinutes = (timeString: string): number => {
   const [hours, minutes] = timeString.split(":").map(Number);
   return hours * 60 + minutes;
-};
-
-const confirmBooking = async () => {
-  if (!canSubmit.value) return;
-
-  const bookingData = {
-    date: props.date.replaceAll("/", "-") || "",
-    startTime: selectedStartTime.value || "",
-    endTime: selectedEndTime.value || "",
-    courtId: props.courtData?.id || "",
-  };
-  // Call API to confirm booking
-  isSubmitting.value = true;
-  const { status, data } = await useApi().createBooking(bookingData);
-  if (data?.code === "success") {
-    visible.value = false;
-    reset();
-    emits("onSubmit");
-  } else {
-    isSubmitting.value = false;
-  }
 };
 
 const validSelectedTime = () => {
@@ -220,6 +250,62 @@ const validSelectedTime = () => {
   }
 };
 
+const confirm = {
+  booking: async () => {
+    if (!canSubmit.value) return;
+
+    const bookingData = {
+      date: dialogData.value.date.replaceAll("/", "-") || "",
+      startTime: selectedStartTime.value || "",
+      endTime: selectedEndTime.value || "",
+      courtId: props.courtData?.id || "",
+    };
+    // Call API to confirm booking
+    isSubmitting.value = true;
+    const { status, data } = await useApi().createBooking(bookingData);
+    if (data?.code === "success") {
+      visible.value = false;
+      reset();
+      emits("onSubmit");
+    } else {
+      isSubmitting.value = false;
+    }
+  },
+  lessonCreate: async () => {
+    if (!canSubmit.value) return;
+
+    const lessonData = {
+      date: dialogData.value.date.replaceAll("/", "-") || "",
+      startTime: selectedStartTime.value || "",
+      endTime: selectedEndTime.value || "",
+      courtId: props.courtData?.id || "",
+      title: lesson.value.title,
+      description: lesson.value.content,
+    };
+    // Call API to confirm lesson creation
+    isSubmitting.value = true;
+    const { status, data } = await useApi().createLesson(lessonData);
+    if (data?.code === "success") {
+      visible.value = false;
+      reset();
+      emits("onSubmit");
+    } else {
+      isSubmitting.value = false;
+    }
+  },
+};
+
+// Exposed methods
+const open = (
+  date: string,
+  timeSlots: { id: string; startTime: string; endTime: string; type: string }[],
+) => {
+  visible.value = true;
+  dialogData.value.date = date;
+  dialogData.value.timeSlots = timeSlots;
+  reset();
+};
+
 const reset = () => {
   selectedStartTime.value = null;
   selectedEndTime.value = null;
@@ -227,5 +313,9 @@ const reset = () => {
 };
 defineExpose({
   reset: () => reset(),
+  open: (
+    date: string,
+    timeSlots: { id: string; startTime: string; endTime: string; type: string }[],
+  ) => open(date, timeSlots),
 });
 </script>

@@ -1,7 +1,14 @@
+import { getServerSession } from "#auth";
+
 export default defineEventHandler(async (event) => {
-  event.context.currentUser = {
-    id: "5d26118e-7900-4465-a496-7917a6fb5ec1",
-    name: "mock-user",
-    roles: ["admin"],
-  };
+  const session = await getServerSession(event);
+  if (!session) {
+    event.context.currentUser = null;
+  } else {
+    event.context.currentUser = {
+      id: session.user.id,
+      name: session.user.name || "",
+      roles: session.user.roles,
+    };
+  }
 });

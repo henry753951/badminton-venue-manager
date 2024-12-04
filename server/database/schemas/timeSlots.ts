@@ -25,14 +25,14 @@ export const t_timeSlots = pgTable(
     date: date("date", { mode: "date" }).notNull(),
     startTime: time("start_time").notNull(),
     endTime: time("end_time").notNull(),
-    type: text("type").notNull(), // 'coach' 或 'normal'
+    type: text("type").notNull(), // 'lesson' 或 'normal'
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at", {
       mode: "date",
       precision: 3,
     }).$onUpdate(() => new Date()),
   },
-  (table) => [check("type_check", sql`${table.type} IN ('coach', 'normal')`)]
+  (table) => [check("type_check", sql`${table.type} IN ('lesson', 'normal')`)]
 );
 
 export const timeSlotsRelations = relations(t_timeSlots, ({ one }) => ({

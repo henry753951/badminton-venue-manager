@@ -30,7 +30,11 @@
           @click="emits('clickTimeSlot', { id: slot.id })"
         >
           <div
-            class="h-full p-1 text-xs rounded overflow-hidden bg-blue-100 dark:bg-dark-200 flex-center flex-col gap-1"
+            class="h-full p-1 text-xs rounded overflow-hidden flex-center flex-col gap-1"
+            :class="{
+              'bg-blue-100 dark:bg-dark-200': slot.type === 'normal',
+              'bg-yellow-200 dark:bg-orange-300': slot.type === 'lesson',
+            }"
           >
             <p>
               {{ formatTime(slot.startTime) }} -

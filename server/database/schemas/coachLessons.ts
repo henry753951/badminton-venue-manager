@@ -1,15 +1,8 @@
-import {
-  pgTable,
-  integer,
-  text,
-  timestamp,
-  varchar,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { pgTable, integer, text, timestamp, varchar, uuid } from "drizzle-orm/pg-core";
 import { t_timeSlots } from "./timeSlots";
 import { t_users } from "./users";
 import { primaryKey } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const t_coachLessons = pgTable("t_coach_lessons", {
   id: uuid("id")
@@ -29,7 +22,7 @@ export const t_coachLessons = pgTable("t_coach_lessons", {
 });
 
 // 關聯多位教練的多對多關係表
-export const coachLessonCoaches = pgTable(
+export const t_coachLessonCoaches = pgTable(
   "t_coach_lesson_coaches",
   {
     coachLessonId: uuid("coach_lesson_id")
@@ -39,5 +32,24 @@ export const coachLessonCoaches = pgTable(
       .references(() => t_users.id)
       .notNull(),
   },
-  (table) => [primaryKey({ columns: [table.coachLessonId, table.coachId] })]
+  (table) => [primaryKey({ columns: [table.coachLessonId, table.coachId] })],
 );
+
+export const lessonsRelations = relations(t_coachLessons, ({ one, many }) => ({
+  timeSlot: one(t_timeSlots, {
+    fields: [t_coachLessons.timeSlotId],
+    references: [t_timeSlots.id],
+  }),
+  coaches: many(t_coachLessonCoaches),
+}));
+
+export const coachLessonCoachesRelations = relations(t_coachLessonCoaches, ({ one, many }) => ({
+  coachLesson: one(t_coachLessons, {
+    fields: [t_coachLessonCoaches.coachLessonId],
+    references: [t_coachLessons.id],
+  }),
+  coach: one(t_users, {
+    fields: [t_coachLessonCoaches.coachId],
+    references: [t_users.id],
+  }),
+}));

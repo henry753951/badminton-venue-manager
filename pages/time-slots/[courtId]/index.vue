@@ -4,6 +4,9 @@
 
 <script lang="ts" setup>
 import { format, startOfWeek, endOfWeek } from "date-fns";
+definePageMeta({
+  name: "timeSlots-courtId",
+});
 
 const route = useRoute();
 
