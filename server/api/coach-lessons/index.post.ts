@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 403);
     return {
       code: "error",
-      data: [],
+      data: null,
       msg: "請先登入",
     };
   }

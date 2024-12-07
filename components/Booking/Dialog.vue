@@ -94,7 +94,7 @@
         justify-between
         w-full
       >
-        <div class="flex-center bg-light-6 py-3 px-3 rounded-full">
+        <div class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full">
           <Avatar
             shape="circle"
             class="mr-2"
@@ -133,10 +133,14 @@
 import Dialog from "primevue/dialog";
 import Dropdown from "primevue/dropdown";
 import Button from "primevue/button";
-
 const visible = defineModel<boolean>("visible");
 
 const props = defineProps({
+  id: {
+    type: String,
+    default: "",
+    required: false,
+  },
   courtData: {
     type: Object as PropType<{
       id: string;
@@ -211,12 +215,14 @@ const availableEndTimes = computed(() => {
 const selectedStartTime = ref(null as string | null);
 const selectedEndTime = ref(null as string | null);
 
-const canSubmit = computed(
-  () =>
+const canSubmit = computed(() => {
+  const timeValid =
     selectedStartTime.value &&
     selectedEndTime.value &&
-    timeStringToMinutes(selectedStartTime.value) < timeStringToMinutes(selectedEndTime.value),
-);
+    timeStringToMinutes(selectedStartTime.value) < timeStringToMinutes(selectedEndTime.value);
+  const lessonValid = props.type === "lesson" ? lesson.value.title : true;
+  return timeValid && lessonValid;
+});
 
 // Methods
 const generateTimeOptions = (start: number, end: number) => {
@@ -300,6 +306,18 @@ const open = (
   date: string,
   timeSlots: { id: string; startTime: string; endTime: string; type: string }[],
 ) => {
+  const toast = usePVToastService();
+  const auth = useAuth();
+  if (auth.status.value !== "authenticated") {
+    toast.add({
+      severity: "info",
+      summary: "請先登入",
+      detail: "請先登入，才能進行租借或課程預約",
+      life: 5000,
+    });
+    return;
+  }
+
   visible.value = true;
   dialogData.value.date = date;
   dialogData.value.timeSlots = timeSlots;

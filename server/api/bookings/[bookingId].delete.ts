@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 403);
     return {
       code: "error",
-      data: [],
+      data: null,
       msg: "請先登入",
     };
   }
@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
     return {
       code: "error",
       msg: "缺少預訂ID",
-      data: [],
+      data: null,
     };
   }
 
@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
       return {
         code: "error",
         msg: "找不到指定的預訂",
-        data: [],
+        data: null,
       };
     }
 
@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
       return {
         code: "error",
         msg: "無權刪除此預訂",
-        data: [],
+        data: null,
       };
     }
 
@@ -126,7 +126,7 @@ export default defineEventHandler(async (event) => {
     return {
       code: "error",
       msg: "無法刪除預訂",
-      data: [],
+      data: null,
       details: Object.keys(error).length ? error : error.message,
     };
   }

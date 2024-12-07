@@ -2,13 +2,15 @@
   <div>
     <Navbar h-4rem />
     <div
-      pt-4rem
       flex
       flex-col
       h-fit
-      min-h-dvh
+      style="min-height: calc(100dvh - 4rem)"
     >
       <Breadcrumb
+        sticky
+        top-0
+        z-50
         v-if="breadcrumbStore.breadcrumbs.length > 0"
         :model="breadcrumbStore.breadcrumbs"
       >

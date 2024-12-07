@@ -96,34 +96,49 @@ export default defineEventHandler(async (event) => {
   try {
     const { userId: userId_, ...filter } = querySchema.parse(query);
     const userId = userId_ === "me" ? event.context.currentUser?.id : userId_;
+
+    if (userId_ === "me" && !event.context.currentUser) {
+      setResponseStatus(event, 401);
+      return {
+        code: "error",
+        msg: "未登入",
+        data: null,
+      };
+    }
+
     const startDate = filter.startDate ? new Date(filter.startDate) : undefined;
     const endDate = filter.endDate ? new Date(filter.endDate) : undefined;
 
     const db = useDb();
 
-    const lessons = await db.query.t_coachLessons.findMany({
-      where: filter.name ? ilike(t_coachLessons.title, `%${filter.name}%`) : undefined,
+    const lessons_ = await db.query.t_coachLessonCoaches.findMany({
+      where: userId ? eq(t_coachLessonCoaches.coachId, userId) : undefined,
       with: {
-        timeSlot: {
+        coachLesson: {
           with: {
-            court: true,
-          },
-        },
-        coaches: {
-          where: userId ? eq(t_coachLessonCoaches.coachId, userId) : undefined,
-          with: {
-            coach: {
-              columns: {
-                id: true,
-                name: true,
-                avatar_url: true,
-                email: true,
+            timeSlot: {
+              with: {
+                court: true,
+              },
+            },
+            coaches: {
+              with: {
+                coach: {
+                  columns: {
+                    id: true,
+                    name: true,
+                    avatar_url: true,
+                    email: true,
+                  },
+                },
               },
             },
           },
         },
       },
     });
+
+    const lessons = lessons_?.map((lesson) => lesson.coachLesson);
 
     const lessonsData = lessons
       .map((lesson) => {
@@ -146,7 +161,21 @@ export default defineEventHandler(async (event) => {
         if (startDate && !endDate) if (startDate <= lesson.timeSlot.date) return true;
         if (!startDate && !endDate) return true;
         return false;
-      });
+      })
+      .filter((lesson) => {
+        // name
+        if (filter.name) {
+          if (lesson.title.includes(filter.name)) return true;
+          return false;
+        }
+        // courtId
+        if (filter.courtId) {
+          if (lesson.timeSlot.courtId === filter.courtId) return true;
+          return false;
+        }
+        return true;
+      })
+      .filter((lesson, index, self) => self.findIndex((t) => t.id === lesson.id) === index);
 
     return {
       code: "success",
@@ -157,7 +186,7 @@ export default defineEventHandler(async (event) => {
     return {
       code: "error",
       msg: "獲取教練課程失敗",
-      data: [],
+      data: null,
       details: Object.keys(error).length ? error : error.message,
     };
   }

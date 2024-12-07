@@ -94,7 +94,7 @@ export const useApi = () => {
           });
           return data.value?.data ?? null;
         },
-        { lazy: true },
+        { lazy: false },
       );
 
       return {
@@ -104,15 +104,19 @@ export const useApi = () => {
       };
     },
     fetchBookings: async (userId: string = "me") => {
-      const { data, status, refresh } = await useAsyncData(`bookings-${userId}`, async () => {
-        const { data } = await useFetch("/api/bookings", {
-          method: "GET",
-          query: {
-            userId: userId,
-          },
-        });
-        return data.value?.data ?? [];
-      });
+      const { data, status, refresh } = await useAsyncData(
+        `bookings-${userId}`,
+        async () => {
+          const { data } = await useFetch("/api/bookings", {
+            method: "GET",
+            query: {
+              userId: userId,
+            },
+          });
+          return data.value?.data ?? [];
+        },
+        { lazy: true },
+      );
 
       return {
         status,
@@ -168,23 +172,75 @@ export const useApi = () => {
         data: lessonsData,
         status,
         refresh,
-      } = await useAsyncData(`lessons-${data.userId.value}`, async () => {
-        const { data: lessonsData } = await useFetch("/api/coach-lessons", {
-          method: "GET",
-          query: {
-            userId: data.userId.value,
-            startTime: data.filter.value?.startTime,
-            endTime: data.filter.value?.endTime,
-            courtId: data.filter.value?.courtId,
-            name: data.filter.value?.name,
-          },
-        });
-        return lessonsData.value?.data;
-      });
+      } = await useAsyncData(
+        `lessons-${data.userId.value}`,
+        async () => {
+          const { data: lessonsData } = await useFetch("/api/coach-lessons", {
+            method: "GET",
+            query: {
+              userId: data.userId.value,
+              startTime: data.filter.value?.startTime,
+              endTime: data.filter.value?.endTime,
+              courtId: data.filter.value?.courtId,
+              name: data.filter.value?.name,
+            },
+          });
+          return lessonsData.value?.data;
+        },
+        { lazy: true },
+      );
       return {
         lessonsData,
         status,
         refresh,
+      };
+    },
+    updateLesson: async (
+      lessonId: string,
+      data: { title: string; description: string; courtId: string },
+    ) => {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch(`/api/coach-lessons/${lessonId}`, {
+        method: "PUT",
+        body: data,
+      });
+
+      return {
+        status,
+        data: response.value,
+        error,
+      };
+    },
+    fetchLesson: async (lessonId: Ref<string>) => {
+      const { data, status, refresh } = await useAsyncData(
+        `lesson-${lessonId}`,
+        async () => {
+          const { data } = await useFetch(`/api/coach-lessons/${lessonId.value}`, {
+            method: "GET",
+          });
+          return data.value?.data ?? null;
+        },
+        { lazy: false },
+      );
+
+      return {
+        status,
+        lessonData: data,
+        refresh,
+      };
+    },
+    deleteLesson: async (lessonId: string) => {
+      const { data, status, error } = await useFetch(`/api/coach-lessons/${lessonId}`, {
+        method: "DELETE",
+      });
+
+      return {
+        status,
+        data: data.value,
+        error,
       };
     },
     createLesson: async (data: {

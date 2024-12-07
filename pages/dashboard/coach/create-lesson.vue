@@ -12,7 +12,7 @@
         <Select
           v-model="currentCourtId"
           :options="courtList"
-          option-label="name"
+          :option-label="item => `[${item.location}] ${item.name}`"
           option-value="id"
           placeholder="請選擇球場"
           class="w-full"
@@ -24,40 +24,44 @@
         />
       </div>
     </WeekChange>
-    <div class="flex relative">
-      <!-- Left Time labels -->
-      <div class="w-16 relative top-70px">
-        <TimeLabels
-          :time-labels="timeLabels"
-          :start-hour="options.startHour"
-          :column-height="options.columnHeight"
-          align="right"
-        />
-      </div>
+    <OverlayMsg
+      :show="status === 'pending' || currentCourtId === ''"
+      :msg="!currentCourtId ? '請先選擇球場':'載入中...'"
+    >
+      <div class="flex relative">
+        <!-- Left Time labels -->
+        <div class="w-16 relative top-70px">
+          <TimeLabels
+            :time-labels="timeLabels"
+            :start-hour="options.startHour"
+            :column-height="options.columnHeight"
+            align="right"
+          />
+        </div>
 
-      <div class="flex-1">
-        <ViewWeek
-          :week-schedule="weekSchedule"
-          v-model:offset="options.mobile.offsetOfWeek"
-        />
-        <ViewTimeSlots
-          :week-schedule="weekSchedule"
-          :options="options"
-          @click-date="bookingLessonDialogRef?.open($event.date, $event.timeSlots)"
-        />
-      </div>
+        <div class="flex-1">
+          <ViewWeek
+            :week-schedule="weekSchedule"
+            v-model:offset="options.mobile.offsetOfWeek"
+          />
+          <ViewTimeSlots
+            :week-schedule="weekSchedule"
+            :options="options"
+            @click-date="bookingLessonDialogRef?.open($event.date, $event.timeSlots)"
+          />
+        </div>
 
-      <!-- Right Time labels -->
-      <div class="w-16 relative top-70px">
-        <TimeLabels
-          :time-labels="timeLabels"
-          :start-hour="options.startHour"
-          :column-height="options.columnHeight"
-          align="left"
-        />
+        <!-- Right Time labels -->
+        <div class="w-16 relative top-70px">
+          <TimeLabels
+            :time-labels="timeLabels"
+            :start-hour="options.startHour"
+            :column-height="options.columnHeight"
+            align="left"
+          />
+        </div>
       </div>
-    </div>
-
+    </OverlayMsg>
     <BookingDialog
       v-if="currentCourt"
       ref="bookingLessonDialogRef"
@@ -93,7 +97,7 @@ const options = ref({
   mobile: {
     offsetOfWeek: 0,
   },
-  columnHeight: 30,
+  columnHeight: 20,
 });
 
 const currentStartDate = ref(

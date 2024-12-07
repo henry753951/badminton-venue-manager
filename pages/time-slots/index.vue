@@ -60,7 +60,7 @@
         <template #header>
           <div
             class="min-h-48 bg-gray-200 flex items-center justify-center text-gray-500"
-            :style="{ backgroundImage: `url(${court.image_url})` }"
+            :style="{ backgroundImage: `url(${court.image_url})`, backgroundSize: 'cover' }"
           ></div>
         </template>
 

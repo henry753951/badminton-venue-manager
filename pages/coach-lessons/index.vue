@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen container mx-auto px-4">
+  <div class="container mx-auto px-4">
     <h1 class="text-xl font-bold text-gray-800 dark:text-white my-3">
       教練課程
     </h1>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card
-        v-for="lesson in lessons"
+        v-for="lesson in lessonsData"
         :key="lesson.id"
         class="relative backdrop-blur-sm"
       >
@@ -16,30 +16,45 @@
             gap-3
           >
             <p>{{ lesson.title }}</p>
-            <span text-sm>{{ lesson.date }}</span>
+            <p>
+              {{ format(lesson.timeSlot.date, "yyyy-MM-dd") }}
+            </p>
           </div>
         </template>
         <template #subtitle>
           <div
             flex
             items-center
-            gap-3
+            mb-2
           >
-            <span>{{ lesson.time_slot }}</span>
-            <Badge>{{ lesson.court }}</Badge>
+            <Icon
+              name="heroicons-solid:clock"
+              class="mr-2"
+            />
+            {{ lesson.timeSlot.startTime }} - {{ lesson.timeSlot.endTime }}
+          </div>
+          <div
+            flex
+            items-center
+            gap-2
+          >
+            <Badge>{{ lesson.timeSlot.court.location }}</Badge>
+            <div>
+              {{ lesson.timeSlot.court.name }}
+            </div>
           </div>
         </template>
         <template #content>
-          <p class="text-gray-600 dark:text-gray-300">
+          <!-- <p class="text-gray-600 dark:text-gray-300 text-ellipsis text-nowrap overflow-clip">
             {{ lesson.description }}
-          </p>
+          </p> -->
           <div
             flex
             gap-2
             mt-4
           >
             <Button
-              label="預約課堂"
+              label="查看課堂"
               class="w-full"
               @click="enroll(lesson.id)"
             />
@@ -58,6 +73,8 @@
 </template>
 
 <script setup lang="ts">
+import { format } from "date-fns";
+
 definePageMeta({
   name: "coachLessons",
 });
@@ -66,21 +83,18 @@ definePageMeta({
 const breadcrumbStore = useBreadcrumbStore();
 
 // State
-const lessons = ref([
-  {
-    id: "1",
-    title: "羽球加強班",
-    court: "球場 A",
-    description: "這是一個羽球加強班，歡迎加入。",
-    date: "2024-05-20",
-    time_slot: "09:00-11:00",
-  },
-]);
+const { lessonsData } = await useApi().fetchLessons({
+  userId: ref(undefined),
+  filter: ref(undefined),
+});
 
 // Methods
 const enroll = (lessonId: string) => {
   // 呼叫 API 選課
-  console.log(`選擇課堂 ID: ${lessonId}`);
+  navigateTo({
+    name: "coachLesson-detail",
+    params: { lessonId },
+  });
 };
 
 // Lifecycle Hooks

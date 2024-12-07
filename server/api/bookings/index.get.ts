@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 403);
     return {
       code: "error",
-      data: [],
+      data: null,
       msg: "請先登入",
     };
   }
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 403);
     return {
       code: "error",
-      data: [],
+      data: null,
       msg: "無法獲取預訂資料",
     };
   }
@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
     return {
       code: "error",
       msg: "無法獲取預訂資料",
-      data: [],
+      data: null,
       details: Object.keys(error).length ? error : error.message,
     };
   }

@@ -84,7 +84,7 @@ const options = ref({
   mobile: {
     offsetOfWeek: 0,
   },
-  columnHeight: 30,
+  columnHeight: 20,
 });
 const currentStartDate = ref(
   startOfWeek(new Date(route.params.startDate as string), { weekStartsOn: 0 }),
@@ -202,7 +202,7 @@ onMounted(async () => {
       route: { name: "timeSlots-courts" },
     },
     {
-      label: `場地 ${courtData.value?.name}`,
+      label: courtData.value?.name || "場地時段",
       route: undefined,
     },
   ];

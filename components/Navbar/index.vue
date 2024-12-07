@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="flex items-center p-4 bg-white dark:bg-black shadow-sm fixed top-0 left-0 right-0 z-50 md:gap-10"
+    class="flex items-center p-4 bg-white dark:bg-black shadow-sm top-0 left-0 right-0 z-50 md:gap-10"
   >
     <!-- Logo / 品牌名稱 -->
     <div class="flex items-center">
