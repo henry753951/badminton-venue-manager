@@ -95,6 +95,7 @@ export default defineEventHandler(async (event) => {
       return {
         code: "error",
         msg: "球場名稱已存在",
+        details: error.message,
       };
     }
     return {

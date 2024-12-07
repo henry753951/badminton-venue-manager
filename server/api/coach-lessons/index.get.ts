@@ -7,6 +7,7 @@ import {
 } from "~/server/database/schema";
 import consola from "consola";
 import { z } from "zod";
+import { H3Error } from "h3";
 
 const querySchema = z.object({
   userId: z.string().min(1, "userId 是必填參數").describe("教練ID").optional(),
@@ -98,12 +99,10 @@ export default defineEventHandler(async (event) => {
     const userId = userId_ === "me" ? event.context.currentUser?.id : userId_;
 
     if (userId_ === "me" && !event.context.currentUser) {
-      setResponseStatus(event, 401);
-      return {
-        code: "error",
-        msg: "未登入",
-        data: null,
-      };
+      throw createError({
+        statusCode: 401,
+        message: "未登入",
+      });
     }
 
     const startDate = filter.startDate ? new Date(filter.startDate) : undefined;
@@ -183,9 +182,21 @@ export default defineEventHandler(async (event) => {
       data: lessonsData,
     };
   } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
+    // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
-      msg: "獲取教練課程失敗",
+      msg: "未知錯誤",
       data: null,
       details: Object.keys(error).length ? error : error.message,
     };

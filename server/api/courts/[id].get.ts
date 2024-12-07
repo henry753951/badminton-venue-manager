@@ -1,5 +1,7 @@
 import { and, eq, ilike } from "drizzle-orm";
 import { t_courts } from "~/server/database/schema";
+import { createError, H3Error } from "h3";
+import consola from "consola";
 
 defineRouteMeta({
   openAPI: {
@@ -81,11 +83,10 @@ export default defineEventHandler(async (event) => {
 
     // 如果没有找到对应的球场
     if (!court) {
-      return {
-        code: "error",
-        msg: "球場未找到",
-        data: null,
-      };
+      throw createError({
+        statusCode: 404,
+        message: "未找到球場",
+      });
     }
 
     // 返回球場資料
@@ -95,9 +96,21 @@ export default defineEventHandler(async (event) => {
       data: court,
     };
   } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
+    // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
-      msg: "查詢失敗",
+      msg: "未知錯誤",
       data: null,
       details: Object.keys(error).length ? error : error.message,
     };

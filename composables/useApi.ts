@@ -275,5 +275,20 @@ export const useApi = () => {
         error,
       };
     },
+    signUpLesson: async (lessonId: string) => {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch(`/api/coach-lessons/${lessonId}/signup`, {
+        method: "POST",
+      });
+
+      return {
+        status,
+        data: response.value,
+        error,
+      };
+    }
   };
 };

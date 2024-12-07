@@ -31,7 +31,7 @@
             </p>
             <div
               class="bg-gray-50 dark:bg-dark-700 p-4 rounded-md"
-              style="white-space: pre-wrap;"
+              style="white-space: pre-wrap"
             >
               {{ lessonData.description || "暫無課程描述" }}
             </div>
@@ -103,13 +103,12 @@
                 >
                   {{ coach.name || "未知教練" }}
                 </p>
-                <a
+                <p
                   class="text-sm overflow-hidden text-ellipsis"
                   :title="coach.email"
-                  :href="'mailto:' + coach.email"
                 >
-                  {{ coach.email }}
-                </a>
+                  <a :href="'mailto:' + coach.email">{{ coach.email }}</a>
+                </p>
               </div>
             </div>
           </div>
@@ -133,18 +132,18 @@
             <div
               v-for="student in lessonData.students"
               :key="student.id"
-              class="flex items-center bg-dark-50 dark:bg-dark-700 p-3 rounded-md"
+              class="flex items-center bg-gray-50 dark:bg-dark-700 p-3 rounded-md"
             >
               <img
                 :src="student.avatar_url || '/default-avatar.png'"
                 :alt="student.name || '學生'"
                 class="w-10 h-10 rounded-full mr-4"
               />
-              <div>
-                <p class="font-medium">
+              <div class="overflow-hidden">
+                <p class="font-medium overflow-hidden text-ellipsis">
                   {{ student.name || "未知學生" }}
                 </p>
-                <p class="text-sm text-dark-500">
+                <p class="text-sm overflow-hidden text-ellipsis">
                   {{ student.email }}
                 </p>
               </div>
@@ -182,9 +181,22 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const handleSignUp = () => {
-  // TODO: Implement sign up logic
-  console.log("報名課程", lessonId.value);
+const handleSignUp = async () => {
+  const toast = usePVToastService();
+  const { status, data } = await useApi().signUpLesson(lessonId.value);
+  if (data?.code === "error") {
+    toast.add({
+      severity: "error",
+      summary: "報名失敗",
+      detail: data.msg,
+    });
+  } else {
+    toast.add({
+      severity: "success",
+      summary: "報名成功",
+      detail: "已成功報名課程",
+    });
+  }
 };
 
 // Lifecycle Hooks

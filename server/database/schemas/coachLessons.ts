@@ -14,6 +14,7 @@ export const t_coachLessons = pgTable("t_coach_lessons", {
     .notNull(),
   title: text("title").notNull(),
   description: text("description"),
+  capacity: integer("capacity").notNull().default(10),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at", {
     mode: "date",

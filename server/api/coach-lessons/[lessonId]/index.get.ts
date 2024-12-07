@@ -5,6 +5,7 @@ import {
   t_timeSlots,
   t_users,
 } from "~/server/database/schema";
+import { H3Error } from "h3";
 import consola from "consola";
 import { z } from "zod";
 
@@ -83,12 +84,10 @@ export default defineEventHandler(async (event) => {
     });
 
     if (!lesson) {
-      setResponseStatus(event, 404);
-      return {
-        code: "error",
-        msg: "教練課程不存在",
-        data: null,
-      };
+      throw createError({
+        statusCode: 404,
+        message: "課程不存在",
+      });
     }
 
     const lessonData = {
@@ -103,9 +102,21 @@ export default defineEventHandler(async (event) => {
       data: lessonData,
     };
   } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
+    // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
-      msg: "獲取教練課程失敗",
+      msg: "未知錯誤",
       data: null,
       details: Object.keys(error).length ? error : error.message,
     };

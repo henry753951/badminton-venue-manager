@@ -1,4 +1,5 @@
 import { between, eq, lte, desc, ilike } from "drizzle-orm";
+import { H3Error } from "h3";
 import {
   t_coachLessonCoaches,
   t_coachLessons,
@@ -24,8 +25,8 @@ defineRouteMeta({
         in: "path",
         name: "lessonId",
         required: true,
-        schema: { type: "string" }
-      }
+        schema: { type: "string" },
+      },
     ],
     requestBody: {
       content: {
@@ -35,11 +36,11 @@ defineRouteMeta({
             properties: {
               title: { type: "string" },
               description: { type: "string" },
-              timeSlotId: { type: "string" }
-            }
-          }
-        }
-      }
+              timeSlotId: { type: "string" },
+            },
+          },
+        },
+      },
     },
     responses: {
       200: {
@@ -53,15 +54,15 @@ defineRouteMeta({
                 msg: { type: "string" },
                 data: {
                   type: "object",
-                  nullable: true
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+                  nullable: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 });
 
 export default defineEventHandler(async (event) => {
@@ -69,12 +70,10 @@ export default defineEventHandler(async (event) => {
     // 獲取當前登入用戶
     const user = event.context.currentUser;
     if (!user) {
-      setResponseStatus(event, 401);
-      return {
-        code: "error",
-        msg: "未登入",
-        data: null
-      };
+      throw createError({
+        statusCode: 401,
+        message: "未登入",
+      });
     }
 
     // 獲取路由參數中的 lessonId
@@ -82,14 +81,12 @@ export default defineEventHandler(async (event) => {
     if (!lessonId) {
       throw createError({
         statusCode: 400,
-        message: "lessonId 是必填參數"
+        message: "lessonId 是必填參數",
       });
     }
 
     // 解析請求體
-    const body = await readValidatedBody(event, (body) => 
-      updateLessonSchema.parse(body)
-    );
+    const body = await readValidatedBody(event, (body) => updateLessonSchema.parse(body));
 
     const db = useDb();
 
@@ -101,10 +98,10 @@ export default defineEventHandler(async (event) => {
       with: {
         coaches: {
           with: {
-            coach: true
-          }
-        }
-      }
+            coach: true,
+          },
+        },
+      },
     });
 
     // 權限檢查：
@@ -112,30 +109,29 @@ export default defineEventHandler(async (event) => {
     if (!existingLesson) {
       throw createError({
         statusCode: 404,
-        message: "課程不存在"
+        message: "課程不存在",
       });
     }
 
     // 2. 檢查是否為管理員或課程教練
     const isAdmin = user.roles.includes("admin");
-    const isCoach = existingLesson.coaches.some(
-      (coachLesson) => coachLesson.coach.id === user.id
-    );
+    const isCoach = existingLesson.coaches.some((coachLesson) => coachLesson.coach.id === user.id);
 
     if (!isAdmin && !isCoach) {
       throw createError({
         statusCode: 403,
-        message: "您無權修改此課程"
+        message: "您無權修改此課程",
       });
     }
 
     // 執行更新
-    const updatedLesson = await db.update(t_coachLessons)
+    const updatedLesson = await db
+      .update(t_coachLessons)
       .set({
         title: body.title,
         description: body.description,
         timeSlotId: body.timeSlotId,
-        updated_at: new Date()
+        updated_at: new Date(),
       })
       .where(eq(t_coachLessons.id, lessonId))
       .returning();
@@ -143,12 +139,21 @@ export default defineEventHandler(async (event) => {
     return {
       code: "success",
       msg: "課程更新成功",
-      data: updatedLesson[0]
+      data: updatedLesson[0],
     };
-
-  } catch (error : any) {
-    consola.error("更新課程發生錯誤:", error);
+  } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
     // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
       msg: "更新課程失敗",

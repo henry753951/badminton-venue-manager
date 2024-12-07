@@ -70,6 +70,15 @@
 
     <template v-if="type == 'lesson'">
       <div class="flex gap-4 items-center mb-4">
+        <label class="font-semibold w-24">人數</label>
+        <InputNumber
+          v-model="lesson.capacity"
+          :min="1"
+          :max="100"
+          class="flex-auto"
+        />
+      </div>
+      <div class="flex gap-4 items-center mb-4">
         <label class="font-semibold w-24">課程標題</label>
         <InputText
           v-model="lesson.title"
@@ -178,6 +187,7 @@ const dialogData = ref({
 const lesson = ref({
   title: "",
   content: "",
+  capacity: 5,
 });
 
 const availableStartTimes = computed(() => {
@@ -286,6 +296,7 @@ const confirm = {
       endTime: selectedEndTime.value || "",
       courtId: props.courtData?.id || "",
       title: lesson.value.title,
+      capacity: lesson.value.capacity,
       description: lesson.value.content,
     };
     // Call API to confirm lesson creation

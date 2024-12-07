@@ -1,5 +1,7 @@
 import { and, ilike } from "drizzle-orm";
 import { t_courts } from "~/server/database/schema";
+import { createError, H3Error } from "h3";
+import consola from "consola";
 
 defineRouteMeta({
   openAPI: {
@@ -89,9 +91,21 @@ export default defineEventHandler(async (event) => {
       data: courts,
     };
   } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
+    // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
-      msg: "查詢失敗",
+      msg: "未知錯誤",
       data: null,
       details: Object.keys(error).length ? error : error.message,
     };

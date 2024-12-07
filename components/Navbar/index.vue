@@ -250,7 +250,6 @@ const toggleMobileMenu = () => {
 const userMenuOptions = ref<UserMenuItem[]>([
   { label: "我的課程", command: () => navigateTo("/user/me/lessons") },
   { label: "我的租借", command: () => navigateTo("/user/me/bookings") },
-  { label: "設定", command: () => navigateTo("/settings") },
   {
     label: "登出",
     command: () => {

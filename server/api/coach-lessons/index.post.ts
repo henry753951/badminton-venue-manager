@@ -5,6 +5,9 @@ import { isValidTimeSlot, isStartBeforeEnd, calculateTimeSlots } from "@/utils/v
 import { and, desc, eq } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { H3Error } from "h3";
+import consola from "consola";
+
 const querySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期必須是有效的 YYYY-MM-DD 格式"),
   startTime: z.string().regex(/^\d{1,2}:\d{2}$/, "時間必須是有效的 HH:mm 格式"),
@@ -94,13 +97,17 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const db = useDb();
   const body = await readBody(event);
-  if (!event.context.currentUser) {
-    setResponseStatus(event, 403);
-    return {
-      code: "error",
-      data: null,
-      msg: "請先登入",
-    };
+  if (
+    !event.context.currentUser ||
+    !(
+      event.context.currentUser.roles.includes("coach") ||
+      event.context.currentUser.roles.includes("admin")
+    )
+  ) {
+    throw createError({
+      statusCode: 401,
+      message: "未登入",
+    });
   }
   try {
     const { date, startTime, endTime, courtId, lesson } = querySchema.parse(body);
@@ -108,12 +115,18 @@ export default defineEventHandler(async (event) => {
     return await db.transaction(async (trx) => {
       // 驗證時間格式
       if (!isValidTimeSlot(startTime) || !isValidTimeSlot(endTime)) {
-        throw new Error("開始時間和結束時間必須是30分鐘為單位，例如 09:00, 09:30");
+        throw createError({
+          statusCode: 400,
+          message: "開始時間和結束時間必須是30分鐘為單位，例如 09:00, 09:30",
+        });
       }
 
       // 驗證開始時間是否早於結束時間
       if (!isStartBeforeEnd(startTime, endTime)) {
-        throw new Error("開始時間必須早於結束時間");
+        throw createError({
+          statusCode: 400,
+          message: "開始時間必須早於結束時間",
+        });
       }
 
       // 計算所需的時間單位
@@ -142,7 +155,10 @@ export default defineEventHandler(async (event) => {
       });
 
       if (!isAvailable) {
-        throw new Error("所選時間不可用");
+        throw createError({
+          statusCode: 400,
+          message: "時間段已被預訂",
+        });
       }
 
       // 創建預訂時間段
@@ -190,7 +206,10 @@ export default defineEventHandler(async (event) => {
 
       // 如果有重疊，拋出錯誤
       if (isOverlap) {
-        throw new Error("時間段已被預訂");
+        throw createError({
+          statusCode: 400,
+          message: "時間段已被預訂",
+        });
       }
 
       // 如果一切成功，返回結果
@@ -201,9 +220,22 @@ export default defineEventHandler(async (event) => {
       };
     });
   } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
+    // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
-      msg: "創建預訂失敗",
+      msg: "未知錯誤",
+      data: null,
       details: Object.keys(error).length ? error : error.message,
     };
   }

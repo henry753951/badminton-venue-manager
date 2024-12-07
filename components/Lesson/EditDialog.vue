@@ -37,7 +37,15 @@
         {{ lesson.endTime }}
       </div>
     </div>
-
+    <div class="flex gap-4 items-center mb-4">
+      <label class="font-semibold w-24">人數</label>
+      <InputNumber
+        v-model="lesson.capacity"
+        :min="1"
+        :max="100"
+        class="flex-auto"
+      />
+    </div>
     <div class="flex gap-4 items-center mb-4">
       <label class="font-semibold w-24">課程標題</label>
       <InputText
@@ -130,6 +138,7 @@ const lesson = ref({
   content: "",
   startTime: "",
   endTime: "",
+  capacity: 5,
 });
 
 const canSubmit = computed(() => {
@@ -146,6 +155,7 @@ const confirm = {
       courtId: courtData.value?.id || "",
       title: lesson.value.title,
       description: lesson.value.content,
+      capacity: lesson.value.capacity,
     };
     // Call API to confirm lesson update
     isSubmitting.value = true;
@@ -183,6 +193,7 @@ const open = async (id: string) => {
     lesson.value.startTime = lessonData.value.timeSlot.startTime;
     lesson.value.endTime = lessonData.value.timeSlot.endTime;
     lesson.value.date = format(new Date(lessonData.value.timeSlot.date), "yyyy-MM-dd");
+    lesson.value.capacity = lessonData.value.capacity;
     visible.value = true;
   } else {
     toast.add({

@@ -6,6 +6,7 @@ import {
   t_users,
 } from "~/server/database/schema";
 import consola from "consola";
+import { H3Error } from "h3";
 import { z } from "zod";
 
 defineRouteMeta({
@@ -48,12 +49,10 @@ export default defineEventHandler(async (event) => {
     // 獲取當前登入用戶
     const user = event.context.currentUser;
     if (!user) {
-      setResponseStatus(event, 401);
-      return {
-        code: "error",
-        msg: "未登入",
-        data: null,
-      };
+      throw createError({
+        statusCode: 401,
+        message: "未登入",
+      });
     }
 
     // 獲取路由參數中的 lessonId
@@ -110,12 +109,22 @@ export default defineEventHandler(async (event) => {
       msg: "課程刪除成功",
       data: null,
     };
-  } catch (error : any) {
-    consola.error("課程刪除失敗", error);
+  } catch (error: any) {
+    consola.error(error);
+    if (error instanceof H3Error) {
+      setResponseStatus(event, error.statusCode);
+      return {
+        code: "error",
+        msg: error.message,
+        data: null,
+        details: Object.keys(error).length ? error : error.message,
+      };
+    }
     // 其他錯誤
+    setResponseStatus(event, 500);
     return {
       code: "error",
-      msg: "課程刪除失敗",
+      msg: "未知錯誤",
       data: null,
       details: Object.keys(error).length ? error : error.message,
     };
