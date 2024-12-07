@@ -12,7 +12,10 @@
       <h1 class="text-2xl font-bold dark:text-white">
         {{ lessonData.title }}
       </h1>
-      <Button @click="handleSignUp">
+      <Button
+        @click="handleSignUp"
+        v-if="auth.status.value === 'authenticated'"
+      >
         <p px-4>
           報名
         </p>
@@ -165,6 +168,9 @@
 definePageMeta({
   name: "coachLesson-detail",
 });
+
+// Composables
+const auth = useAuth();
 
 // States
 const lessonId = ref(useRoute().params.lessonId as string);

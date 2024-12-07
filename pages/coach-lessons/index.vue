@@ -8,6 +8,7 @@
         v-for="lesson in lessonsData"
         :key="lesson.id"
         class="relative backdrop-blur-sm"
+        @click="enroll(lesson.id)"
       >
         <template #title>
           <div
@@ -45,27 +46,6 @@
           </div>
         </template>
         <template #content>
-          <!-- <p class="text-gray-600 dark:text-gray-300 text-ellipsis text-nowrap overflow-clip">
-            {{ lesson.description }}
-          </p> -->
-          <div
-            flex
-            gap-2
-            mt-4
-          >
-            <Button
-              label="查看課堂"
-              class="w-full"
-              @click="enroll(lesson.id)"
-            />
-            <Button @click="enroll(lesson.id)">
-              <Icon
-                name="material-symbols:emoji-people"
-                size="2rem"
-              />
-              <p>5</p>
-            </Button>
-          </div>
         </template>
       </Card>
     </div>

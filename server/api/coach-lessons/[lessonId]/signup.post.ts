@@ -38,24 +38,24 @@ defineRouteMeta({
   },
 });
 export default defineEventHandler(async (event) => {
-  const user = event.context.currentUser;
-  if (!user) {
-    throw createError({
-      statusCode: 200,
-      message: "請先登入",
-    });
-  }
-  // 獲取路由參數中的 lessonId
-  const lessonId = getRouterParam(event, "lessonId");
-  if (!lessonId) {
-    throw createError({
-      statusCode: 200,
-      message: "lessonId 是必填參數",
-    });
-  }
-  const db = useDb();
-
   try {
+    const user = event.context.currentUser;
+    if (!user) {
+      throw createError({
+        statusCode: 200,
+        message: "請先登入",
+      });
+    }
+    // 獲取路由參數中的 lessonId
+    const lessonId = getRouterParam(event, "lessonId");
+    if (!lessonId) {
+      throw createError({
+        statusCode: 200,
+        message: "lessonId 是必填參數",
+      });
+    }
+    const db = useDb();
+
     const studentLessons_ = await db.query.t_coachLessonStudents.findMany({
       where(table, { eq }) {
         return eq(table.studentId, user.id);
