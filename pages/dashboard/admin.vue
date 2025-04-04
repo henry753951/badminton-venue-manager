@@ -4,7 +4,6 @@ import { ref } from 'vue';
 const menuItems = ref([
     { label: '管理使用者', to: '/dashboard/admin/users' },
     { label: '管理場地', to: '/dashboard/admin/courts' },
-    { label: '管理教練', to: '/dashboard/coach' },
 ]);
 </script>
 
