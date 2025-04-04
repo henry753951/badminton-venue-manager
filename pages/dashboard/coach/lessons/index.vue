@@ -46,7 +46,10 @@ definePageMeta({
 });
 // States
 
-const { lessonsData } = await useApi().fetchLessons({ coachId: ref("me"), filter: ref(undefined) });
+const { lessonsData } = await useApi().fetchLessons({
+  coachId: ref("me"), userId: ref(undefined),
+  filter: ref(undefined)
+});
 
 // Lifecycle Hooks
 onMounted(() => {
