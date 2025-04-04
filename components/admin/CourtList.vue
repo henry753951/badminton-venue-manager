@@ -3,6 +3,12 @@
         <DataTable :value="courts" :loading="loading" class="p-datatable-striped">
             <Column field="name" header="名稱"></Column>
             <Column field="location" header="地點"></Column>
+
+            <Column>
+                <template #body="slotProps">
+                    <Button label="管理預約" @click="navigateToCourt(slotProps.data.id)" class="p-button-sm"/>
+                </template>
+            </Column>
             <Column>
                 <template #body="slotProps">
                     <Button label="刪除" @click="deleteCourt(slotProps.data.id)" class="p-button-sm p-button-danger" />
@@ -53,5 +59,9 @@ const createCourt = async (newCourt) => {
     const response = await api.fetchCourts();
     courts.value = response.courtsData.value;
     showForm.value = false;
+};
+
+const navigateToCourt = (courtId) => {
+   navigateTo(`/dashboard/admin/courts/${courtId}`);
 };
 </script>

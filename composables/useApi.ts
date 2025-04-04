@@ -165,6 +165,16 @@ export const useApi = () => {
         error,
       };
     },
+    deleteTimeSlot: async (timeSlotId: string) => {
+      const { data, status, error } = await useFetch(`/api/time-slots/${timeSlotId}`, {
+        method: "DELETE",
+      });
+      return {
+        status,
+        data: data.value,
+        error,
+      };
+    },
     fetchLessons: async (data: {
       userId: Ref<string | undefined>;
       coachId: Ref<string | undefined>;

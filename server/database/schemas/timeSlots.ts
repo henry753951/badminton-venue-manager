@@ -40,4 +40,8 @@ export const timeSlotsRelations = relations(t_timeSlots, ({ one }) => ({
     fields: [t_timeSlots.courtId],
     references: [t_courts.id],
   }),
+  booking: one(t_timeSlots, {
+    fields: [t_timeSlots.id],
+    references: [t_timeSlots.id],
+  }),
 }));

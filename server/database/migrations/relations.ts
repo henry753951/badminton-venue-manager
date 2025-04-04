@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { tTimeSlots, tBookings, tUsers, tCoachLessons, tCourts, tRoles, tCoachLessonCoaches, tUserRoles } from "./schema";
+import { tTimeSlots, tBookings, tUsers, tCoachLessons, tCourts, tUserOauth, tCoachLessonCoaches, tCoachLessonStudents, tRoles, tUserRoles } from "./schema";
 
 export const tBookingsRelations = relations(tBookings, ({one}) => ({
 	tTimeSlot: one(tTimeSlots, {
@@ -21,13 +21,11 @@ export const tTimeSlotsRelations = relations(tTimeSlots, ({one, many}) => ({
 	}),
 }));
 
-export const tUsersRelations = relations(tUsers, ({one, many}) => ({
+export const tUsersRelations = relations(tUsers, ({many}) => ({
 	tBookings: many(tBookings),
-	tRole: one(tRoles, {
-		fields: [tUsers.roleId],
-		references: [tRoles.id]
-	}),
+	tUserOauths: many(tUserOauth),
 	tCoachLessonCoaches: many(tCoachLessonCoaches),
+	tCoachLessonStudents: many(tCoachLessonStudents),
 	tUserRoles: many(tUserRoles),
 }));
 
@@ -37,15 +35,18 @@ export const tCoachLessonsRelations = relations(tCoachLessons, ({one, many}) => 
 		references: [tTimeSlots.id]
 	}),
 	tCoachLessonCoaches: many(tCoachLessonCoaches),
+	tCoachLessonStudents: many(tCoachLessonStudents),
 }));
 
 export const tCourtsRelations = relations(tCourts, ({many}) => ({
 	tTimeSlots: many(tTimeSlots),
 }));
 
-export const tRolesRelations = relations(tRoles, ({many}) => ({
-	tUsers: many(tUsers),
-	tUserRoles: many(tUserRoles),
+export const tUserOauthRelations = relations(tUserOauth, ({one}) => ({
+	tUser: one(tUsers, {
+		fields: [tUserOauth.userId],
+		references: [tUsers.id]
+	}),
 }));
 
 export const tCoachLessonCoachesRelations = relations(tCoachLessonCoaches, ({one}) => ({
@@ -59,6 +60,17 @@ export const tCoachLessonCoachesRelations = relations(tCoachLessonCoaches, ({one
 	}),
 }));
 
+export const tCoachLessonStudentsRelations = relations(tCoachLessonStudents, ({one}) => ({
+	tCoachLesson: one(tCoachLessons, {
+		fields: [tCoachLessonStudents.coachLessonId],
+		references: [tCoachLessons.id]
+	}),
+	tUser: one(tUsers, {
+		fields: [tCoachLessonStudents.studentId],
+		references: [tUsers.id]
+	}),
+}));
+
 export const tUserRolesRelations = relations(tUserRoles, ({one}) => ({
 	tRole: one(tRoles, {
 		fields: [tUserRoles.roleId],
@@ -68,4 +80,8 @@ export const tUserRolesRelations = relations(tUserRoles, ({one}) => ({
 		fields: [tUserRoles.userId],
 		references: [tUsers.id]
 	}),
+}));
+
+export const tRolesRelations = relations(tRoles, ({many}) => ({
+	tUserRoles: many(tUserRoles),
 }));

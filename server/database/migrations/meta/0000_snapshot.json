@@ -1,9 +1,219 @@
 {
-  "id": "00000000-0000-0000-0000-000000000000",
-  "prevId": "",
+  "id": "886219bf-53b3-4c68-b0a7-28ed5d7f88d4",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.t_user_oauth": {
+      "name": "t_user_oauth",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sub": {
+          "name": "sub",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "t_user_oauth_user_id_t_users_id_fk": {
+          "name": "t_user_oauth_user_id_t_users_id_fk",
+          "tableFrom": "t_user_oauth",
+          "tableTo": "t_users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.t_users": {
+      "name": "t_users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (3)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "t_users_email_unique": {
+          "name": "t_users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.t_roles": {
+      "name": "t_roles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(8)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "t_roles_name_unique": {
+          "name": "t_roles_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.t_user_roles": {
+      "name": "t_user_roles",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role_id": {
+          "name": "role_id",
+          "type": "varchar(8)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "t_user_roles_user_id_t_users_id_fk": {
+          "name": "t_user_roles_user_id_t_users_id_fk",
+          "tableFrom": "t_user_roles",
+          "tableTo": "t_users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "t_user_roles_role_id_t_roles_id_fk": {
+          "name": "t_user_roles_role_id_t_roles_id_fk",
+          "tableFrom": "t_user_roles",
+          "tableTo": "t_roles",
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "t_user_roles_user_id_role_id_pk": {
+          "name": "t_user_roles_user_id_role_id_pk",
+          "columns": [
+            "user_id",
+            "role_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.t_bookings": {
       "name": "t_bookings",
       "schema": "",
@@ -30,13 +240,117 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "t_bookings_user_id_t_users_id_fk": {
+          "name": "t_bookings_user_id_t_users_id_fk",
+          "tableFrom": "t_bookings",
+          "tableTo": "t_users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "t_bookings_time_slot_id_t_time_slots_id_fk": {
           "name": "t_bookings_time_slot_id_t_time_slots_id_fk",
           "tableFrom": "t_bookings",
           "tableTo": "t_time_slots",
-          "schemaTo": "public",
           "columnsFrom": [
             "time_slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.t_courts": {
+      "name": "t_courts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(8)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "nameIdx": {
+          "name": "nameIdx",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.t_coach_lesson_coaches": {
+      "name": "t_coach_lesson_coaches",
+      "schema": "",
+      "columns": {
+        "coach_lesson_id": {
+          "name": "coach_lesson_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "t_coach_lesson_coaches_coach_lesson_id_t_coach_lessons_id_fk": {
+          "name": "t_coach_lesson_coaches_coach_lesson_id_t_coach_lessons_id_fk",
+          "tableFrom": "t_coach_lesson_coaches",
+          "tableTo": "t_coach_lessons",
+          "columnsFrom": [
+            "coach_lesson_id"
           ],
           "columnsTo": [
             "id"
@@ -44,13 +358,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "t_bookings_user_id_t_users_id_fk": {
-          "name": "t_bookings_user_id_t_users_id_fk",
-          "tableFrom": "t_bookings",
+        "t_coach_lesson_coaches_coach_id_t_users_id_fk": {
+          "name": "t_coach_lesson_coaches_coach_id_t_users_id_fk",
+          "tableFrom": "t_coach_lesson_coaches",
           "tableTo": "t_users",
-          "schemaTo": "public",
           "columnsFrom": [
-            "user_id"
+            "coach_id"
           ],
           "columnsTo": [
             "id"
@@ -59,10 +372,78 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "t_coach_lesson_coaches_coach_lesson_id_coach_id_pk": {
+          "name": "t_coach_lesson_coaches_coach_lesson_id_coach_id_pk",
+          "columns": [
+            "coach_lesson_id",
+            "coach_id"
+          ]
+        }
+      },
       "uniqueConstraints": {},
-      "checkConstraints": {},
       "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.t_coach_lesson_students": {
+      "name": "t_coach_lesson_students",
+      "schema": "",
+      "columns": {
+        "coach_lesson_id": {
+          "name": "coach_lesson_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_id": {
+          "name": "student_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "t_coach_lesson_students_coach_lesson_id_t_coach_lessons_id_fk": {
+          "name": "t_coach_lesson_students_coach_lesson_id_t_coach_lessons_id_fk",
+          "tableFrom": "t_coach_lesson_students",
+          "tableTo": "t_coach_lessons",
+          "columnsFrom": [
+            "coach_lesson_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "t_coach_lesson_students_student_id_t_users_id_fk": {
+          "name": "t_coach_lesson_students_student_id_t_users_id_fk",
+          "tableFrom": "t_coach_lesson_students",
+          "tableTo": "t_users",
+          "columnsFrom": [
+            "student_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "t_coach_lesson_students_coach_lesson_id_student_id_pk": {
+          "name": "t_coach_lesson_students_coach_lesson_id_student_id_pk",
+          "columns": [
+            "coach_lesson_id",
+            "student_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.t_coach_lessons": {
@@ -94,6 +475,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -103,7 +491,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp(3)",
+          "type": "timestamp (3)",
           "primaryKey": false,
           "notNull": false
         }
@@ -114,118 +502,28 @@
           "name": "t_coach_lessons_time_slot_id_t_time_slots_id_fk",
           "tableFrom": "t_coach_lessons",
           "tableTo": "t_time_slots",
-          "schemaTo": "public",
           "columnsFrom": [
             "time_slot_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "t_coach_lessons_time_slot_id_unique": {
+          "name": "t_coach_lessons_time_slot_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "time_slot_id"
-          ],
-          "nullsNotDistinct": false,
-          "name": "t_coach_lessons_time_slot_id_unique"
+          ]
         }
       },
-      "checkConstraints": {},
       "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.t_courts": {
-      "name": "t_courts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(8)",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "'kHYSFysY2HHi2w61mMVpWx'"
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "location": {
-          "name": "location",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "nameIdx": {
-          "name": "nameIdx",
-          "columns": [
-            {
-              "expression": "name",
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops",
-              "isExpression": false
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
       "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.t_roles": {
-      "name": "t_roles",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(8)",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "'2BU6e4K8qGmwZAoKY7zuFX'"
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "t_roles_name_unique": {
-          "columns": [
-            "name"
-          ],
-          "nullsNotDistinct": false,
-          "name": "t_roles_name_unique"
-        }
-      },
-      "checkConstraints": {},
-      "policies": {},
       "isRLSEnabled": false
     },
     "public.t_time_slots": {
@@ -278,7 +576,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp(3)",
+          "type": "timestamp (3)",
           "primaryKey": false,
           "notNull": false
         }
@@ -289,7 +587,6 @@
           "name": "t_time_slots_court_id_t_courts_id_fk",
           "tableFrom": "t_time_slots",
           "tableTo": "t_courts",
-          "schemaTo": "public",
           "columnsFrom": [
             "court_id"
           ],
@@ -302,223 +599,13 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
       "checkConstraints": {
         "type_check": {
           "name": "type_check",
-          "value": "type = ANY (ARRAY['coach'::text, 'normal'::text])"
+          "value": "\"t_time_slots\".\"type\" IN ('lesson', 'normal')"
         }
       },
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.t_users": {
-      "name": "t_users",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hashed_password": {
-          "name": "hashed_password",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "avatar_url": {
-          "name": "avatar_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "role_id": {
-          "name": "role_id",
-          "type": "varchar(8)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp(3)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "t_users_role_id_t_roles_id_fk": {
-          "name": "t_users_role_id_t_roles_id_fk",
-          "tableFrom": "t_users",
-          "tableTo": "t_roles",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "t_users_email_unique": {
-          "columns": [
-            "email"
-          ],
-          "nullsNotDistinct": false,
-          "name": "t_users_email_unique"
-        }
-      },
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.t_coach_lesson_coaches": {
-      "name": "t_coach_lesson_coaches",
-      "schema": "",
-      "columns": {
-        "coach_lesson_id": {
-          "name": "coach_lesson_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "coach_id": {
-          "name": "coach_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "t_coach_lesson_coaches_coach_id_t_users_id_fk": {
-          "name": "t_coach_lesson_coaches_coach_id_t_users_id_fk",
-          "tableFrom": "t_coach_lesson_coaches",
-          "tableTo": "t_users",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "coach_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "t_coach_lesson_coaches_coach_lesson_id_t_coach_lessons_id_fk": {
-          "name": "t_coach_lesson_coaches_coach_lesson_id_t_coach_lessons_id_fk",
-          "tableFrom": "t_coach_lesson_coaches",
-          "tableTo": "t_coach_lessons",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "coach_lesson_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "t_coach_lesson_coaches_coach_lesson_id_coach_id_pk": {
-          "name": "t_coach_lesson_coaches_coach_lesson_id_coach_id_pk",
-          "columns": [
-            "coach_lesson_id",
-            "coach_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
-    "public.t_user_roles": {
-      "name": "t_user_roles",
-      "schema": "",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role_id": {
-          "name": "role_id",
-          "type": "varchar(8)",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "t_user_roles_role_id_t_roles_id_fk": {
-          "name": "t_user_roles_role_id_t_roles_id_fk",
-          "tableFrom": "t_user_roles",
-          "tableTo": "t_roles",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "t_user_roles_user_id_t_users_id_fk": {
-          "name": "t_user_roles_user_id_t_users_id_fk",
-          "tableFrom": "t_user_roles",
-          "tableTo": "t_users",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "t_user_roles_user_id_role_id_pk": {
-          "name": "t_user_roles_user_id_role_id_pk",
-          "columns": [
-            "user_id",
-            "role_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "checkConstraints": {},
-      "policies": {},
       "isRLSEnabled": false
     }
   },
@@ -529,11 +616,8 @@
   "policies": {},
   "views": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "internal": {
     "tables": {}
   }
 }
