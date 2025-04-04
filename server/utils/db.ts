@@ -9,7 +9,7 @@ export function useDb() {
     return db;
   }
 
-  if (!process.env.DATABASE_URL) throw new Error("Missing db_url in runtime config");
+  if (!process.env.DATABASE_URL) throw new Error("Missing DATABASE_URL in runtime config");
   const client = {
     connection: {
       connectionString: process.env.DATABASE_URL,

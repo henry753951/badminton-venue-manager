@@ -160,11 +160,11 @@ export const useApi = () => {
       userId: Ref<string | undefined>;
       filter: Ref<
         | {
-            startTime: string | undefined;
-            endTime: string | undefined;
-            courtId: string | undefined;
-            name: string | undefined;
-          }
+          startTime: string | undefined;
+          endTime: string | undefined;
+          courtId: string | undefined;
+          name: string | undefined;
+        }
         | undefined
       >;
     }) => {
@@ -289,6 +289,34 @@ export const useApi = () => {
         data: response.value,
         error,
       };
-    }
+    },
+    fetchUsers: async () => {
+      const { data } = await useFetch("/api/users", {
+        method: "GET",
+      });
+      return data.value;
+    },
+
+    updateUser: async (userId: string, data: any) => {
+      const { data: response, status, error } = await useFetch(`/api/users/${userId}`, {
+        method: "POST",
+        body: data,
+      });
+      return { status, data: response.value, error };
+    },
+
+    deleteUser: async (userId: string) => {
+      const { data, status, error } = await useFetch(`/api/users/${userId}`, {
+        method: "DELETE",
+      });
+      return { status, data: data.value, error };
+    },
+
+    fetchRoles: async () => {
+      const { data } = await useFetch("/api/roles", {
+        method: "GET",
+      });
+      return data.value;
+    },
   };
 };

@@ -16,6 +16,7 @@ const querySchema = z.object({
   lesson: z.object({
     title: z.string().min(1, "title 是必填參數").describe("課程標題"),
     description: z.string().min(1, "description 是必填參數").describe("課程描述"),
+    capacity: z.number().min(1, "capacity 是必填參數").describe("課程人數上限"),
   }),
 });
 
@@ -58,6 +59,10 @@ defineRouteMeta({
                   description: {
                     type: "string",
                     description: "課程描述",
+                  },
+                  capacity: {
+                    type: "number", 
+                    description: "課程人數上限",
                   },
                 },
               },
@@ -180,6 +185,7 @@ export default defineEventHandler(async (event) => {
         timeSlotId: newTimeSlots.id,
         title: lesson.title,
         description: lesson.description,
+        capacity: lesson.capacity,
       });
 
       const [newLesson] = await trx

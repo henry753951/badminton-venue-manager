@@ -21,7 +21,7 @@ export default defineNuxtModule({
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
         DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
         DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
-        DB_URL: process.env.DB_URL,
+        DATABASE_URL: process.env.DATABASE_URL,
       };
 
       consola.info("ENV :\n" + JSON.stringify(env, null, 2));

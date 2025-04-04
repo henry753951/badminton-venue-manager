@@ -8,10 +8,10 @@ export const t_bookings = pgTable("t_bookings", {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   userId: uuid("user_id")
-    .references(() => t_users.id)
+    .references(() => t_users.id, { onDelete: "cascade" })
     .notNull(),
   timeSlotId: uuid("time_slot_id")
-    .references(() => t_timeSlots.id)
+    .references(() => t_timeSlots.id, { onDelete: "cascade" })
     .notNull(),
 });
 
