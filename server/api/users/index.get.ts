@@ -23,6 +23,17 @@ export default defineEventHandler(async (event) => {
       .leftJoin(t_roles, eq(t_userRoles.roleId, t_roles.id))
       .groupBy(t_users.id);
 
+    users.forEach((user) => {
+      // @ts-expect-error
+      if (user.roles.includes(null)) {
+        user.roles = [];
+      }
+      // @ts-expect-error
+      if (user.roles_name.includes(null)) {
+        user.roles_name = [];
+      }
+    }
+    );
     return {
       code: "success",
       msg: "Users fetched successfully",

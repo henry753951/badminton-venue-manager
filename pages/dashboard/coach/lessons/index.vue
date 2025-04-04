@@ -1,17 +1,10 @@
 <template>
   <div class="container mx-auto">
-    <div
-      flex
-      flex-col
-      gap-3
-    >
-      <NuxtLink
-        v-for="lesson in lessonsData"
-        :to="{
-          name: 'dashboard-coach-lesson-detail',
-          params: { lessonId: lesson.id },
-        }"
-      >
+    <div flex flex-col gap-3>
+      <NuxtLink v-for="lesson in lessonsData" :to="{
+        name: 'dashboard-coach-lesson-detail',
+        params: { lessonId: lesson.id },
+      }">
         <Card>
           <template #content>
             <div class="flex justify-between">
@@ -22,33 +15,20 @@
                 </Badge>
               </div>
               <div class="flex gap-2">
-                <div
-                  v-for="coach in lesson.coaches.slice(0, 2)"
-                  class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full"
-                >
-                  <Avatar
-                    shape="circle"
-                    class="mr-2"
-                    :label="coach.avatar_url ? undefined : (coach?.name?.[0] ?? '')"
-                    :image="coach.avatar_url || undefined"
-                  />
+                <div v-for="coach in lesson.coaches.slice(0, 2)"
+                  class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full">
+                  <Avatar shape="circle" class="mr-2" :label="coach.avatar_url ? undefined : (coach?.name?.[0] ?? '')"
+                    :image="coach.avatar_url || undefined" />
                   <span>{{ coach.name }}</span>
                 </div>
-                <div
-                  class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full"
-                  v-if="lesson.coaches.length > 2"
-                >
+                <div class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full"
+                  v-if="lesson.coaches.length > 2">
                   {{ `+${lesson.coaches.length - 2}` }}
                 </div>
               </div>
             </div>
             <!-- content -->
-            <div
-              style="white-space: pre-wrap"
-              flex
-              gap-2
-              mt-2
-            >
+            <div style="white-space: pre-wrap" flex gap-2 mt-2>
               <p>{{ lesson.description }}</p>
             </div>
           </template>
@@ -66,7 +46,7 @@ definePageMeta({
 });
 // States
 
-const { lessonsData } = await useApi().fetchLessons({ userId: ref("me"), filter: ref(undefined) });
+const { lessonsData } = await useApi().fetchLessons({ coachId: ref("me"), filter: ref(undefined) });
 
 // Lifecycle Hooks
 onMounted(() => {

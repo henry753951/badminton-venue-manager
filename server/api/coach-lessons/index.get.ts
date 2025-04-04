@@ -10,6 +10,7 @@ import { z } from "zod";
 import { H3Error } from "h3";
 
 const querySchema = z.object({
+  coachId: z.string().optional(),
   userId: z.string().min(1, "userId 是必填參數").describe("教練ID").optional(),
   startDate: z
     .string()
@@ -33,6 +34,13 @@ defineRouteMeta({
       {
         in: "query",
         name: "userId",
+        schema: {
+          type: "string",
+        },
+      },
+      {
+        in: "query",
+        name: "coachId",
         schema: {
           type: "string",
         },
@@ -95,10 +103,11 @@ defineRouteMeta({
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   try {
-    const { userId: userId_, ...filter } = querySchema.parse(query);
+    const { userId: userId_, coachId: coachId_, ...filter } = querySchema.parse(query);
     const userId = userId_ === "me" ? event.context.currentUser?.id : userId_;
+    const coachId = coachId_ === "me" ? event.context.currentUser?.id : coachId_;
 
-    if (userId_ === "me" && !event.context.currentUser) {
+    if (userId_ === "me" && !event.context.currentUser || coachId_ === "me" && !event.context.currentUser) {
       throw createError({
         statusCode: 401,
         message: "未登入",
@@ -132,6 +141,15 @@ export default defineEventHandler(async (event) => {
                 },
               },
             },
+            students: {
+              with: {
+                student: {
+                  columns: {
+                    id: true,
+                  }
+                }
+              }
+            }
           },
         },
       },
@@ -149,6 +167,11 @@ export default defineEventHandler(async (event) => {
               name: coach.coach.name,
               avatar_url: coach.coach.avatar_url,
               email: coach.coach.email,
+            };
+          }),
+          students: lesson.students.map((student) => {
+            return {
+              id: student.student.id,
             };
           }),
         };
@@ -172,6 +195,18 @@ export default defineEventHandler(async (event) => {
           if (lesson.timeSlot.courtId === filter.courtId) return true;
           return false;
         }
+
+        // coachId
+        if (coachId) {
+          if (lesson.coaches.some((coach) => coach.id === coachId)) return true;
+          return false;
+        }
+        // userId
+        if (userId) {
+          if (lesson.students.some((student) => student.id === userId)) return true;
+          return false;
+        }
+        
         return true;
       })
       .filter((lesson, index, self) => self.findIndex((t) => t.id === lesson.id) === index);

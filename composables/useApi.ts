@@ -59,20 +59,14 @@ export const useApi = () => {
         location,
       });
 
-      const { data, status, refresh } = await useAsyncData(
-        "courts",
-        async () => {
-          const { data, refresh } = await useFetch("/api/courts", {
-            query: {
-              name: inputs.value.name,
-              location: inputs.value.location,
-            },
-            transform: (response) => response.data || [],
-          });
-          return data.value;
+
+      const { data, refresh, status } = await useFetch("/api/courts", {
+        query: {
+          name: inputs.value.name,
+          location: inputs.value.location,
         },
-        { lazy: true },
-      );
+        transform: (response) => response.data || [],
+      });
 
       const search = (name: string, location: string) => {
         inputs.value.name = name;
@@ -103,6 +97,21 @@ export const useApi = () => {
         refresh,
       };
     },
+    createCourt: async (data: { name: string; location: string }) => {
+      const { data: response, status, error } = await useFetch("/api/courts", {
+        method: "POST",
+        body: data,
+      });
+      return { status, data: response.value, error };
+    },
+
+    deleteCourt: async (courtId: string) => {
+      const { data, status, error } = await useFetch(`/api/courts/${courtId}`, {
+        method: "DELETE",
+      });
+      return { status, data: data.value, error };
+    },
+
     fetchBookings: async (userId: string = "me") => {
       const { data, status, refresh } = await useAsyncData(
         `bookings-${userId}`,
@@ -158,6 +167,7 @@ export const useApi = () => {
     },
     fetchLessons: async (data: {
       userId: Ref<string | undefined>;
+      coachId: Ref<string | undefined>;
       filter: Ref<
         | {
           startTime: string | undefined;
@@ -173,12 +183,13 @@ export const useApi = () => {
         status,
         refresh,
       } = await useAsyncData(
-        `lessons-${data.userId.value}`,
+        `lessons-${data.userId.value}-${data.coachId.value}`,
         async () => {
           const { data: lessonsData } = await useFetch("/api/coach-lessons", {
             method: "GET",
             query: {
               userId: data.userId.value,
+              coachId: data.coachId.value,
               startTime: data.filter.value?.startTime,
               endTime: data.filter.value?.endTime,
               courtId: data.filter.value?.courtId,

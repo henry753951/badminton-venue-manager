@@ -37,6 +37,9 @@ export default defineEventHandler(async (event) => {
       // 更新用戶角色
       if (roles) {
         await trx.delete(t_userRoles).where(eq(t_userRoles.userId, userId));
+        if (roles.length === 0) {
+          return;
+        }
         await trx.insert(t_userRoles).values(
           roles.map((roleId) => ({ userId, roleId }))
         );
