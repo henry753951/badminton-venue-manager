@@ -64,6 +64,7 @@ const breadcrumbStore = useBreadcrumbStore();
 
 // State
 const { lessonsData } = await useApi().fetchLessons({
+  coachId: ref(undefined),
   userId: ref(undefined),
   filter: ref(undefined),
 });

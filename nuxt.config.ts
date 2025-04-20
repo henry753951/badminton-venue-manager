@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     auth_origin: process.env.AUTH_ORIGIN,
+    DATABASE_URL: process.env.DATABASE_URL,
   },
   primevue: {
     components: {
