@@ -4,6 +4,7 @@
       size="small"
       :text="breakpoints.smallerOrEqual('md').value"
       @click="$emit('onPrev')"
+      :disabled="!canChangeWeek.prev"
     >
       <Icon
         name="mdi-chevron-left"
@@ -26,6 +27,7 @@
       size="small"
       :text="breakpoints.smallerOrEqual('md').value"
       @click="$emit('onNext')"
+      :disabled="!canChangeWeek.next"
     >
       <div class="md:block hidden">
         下一週
@@ -45,6 +47,17 @@ defineProps({
   currentDate: {
     type: String,
     required: true,
+  },
+  canChangeWeek: {
+    type: Object as () => {
+      prev: boolean;
+      next: boolean;
+    },
+    required: false,
+    default: () => ({
+      prev: true,
+      next: true,
+    }),
   },
 });
 

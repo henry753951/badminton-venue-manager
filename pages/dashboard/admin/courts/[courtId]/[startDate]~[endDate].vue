@@ -1,6 +1,5 @@
 <template>
   <div class="container mx-auto p-4 h-fit">
-    點擊已被預約的時段可刪除預約
     <div class="flex-center py-2">
       <h1 class="text-2xl font-bold flex-center gap-3">
         <p>{{ courtData?.name }}</p>
@@ -10,26 +9,54 @@
       </h1>
     </div>
 
-    <WeekChange :current-date="dateRangeDisplay" @on-prev="changeWeek(-1)" @on-next="changeWeek(1)" />
+    <WeekChange
+      :current-date="dateRangeDisplay"
+      @on-prev="changeWeek(-1)"
+      @on-next="changeWeek(1)"
+    />
 
     <div class="flex relative">
       <!-- Left Time labels -->
       <div class="w-16 relative top-70px">
-        <TimeLabels :time-labels="timeLabels" :start-hour="options.startHour" :column-height="options.columnHeight"
-          align="right" />
+        <TimeLabels
+          :time-labels="timeLabels"
+          :start-hour="options.startHour"
+          :column-height="options.columnHeight"
+          align="right"
+        />
       </div>
 
       <div class="flex-1">
-        <ViewWeek :week-schedule="weekSchedule" v-model:offset="options.mobile.offsetOfWeek" />
-        <ViewTimeSlots :week-schedule="weekSchedule" :options="options" @click-time-slot="deleteTimeSlot" />
+        <ViewWeek
+          :week-schedule="weekSchedule"
+          v-model:offset="options.mobile.offsetOfWeek"
+        />
+        <ViewTimeSlots
+          :week-schedule="weekSchedule"
+          :options="options"
+          @click-time-slot="openReviewModal"
+        />
       </div>
 
       <!-- Right Time labels -->
       <div class="w-16 relative top-70px">
-        <TimeLabels :time-labels="timeLabels" :start-hour="options.startHour" :column-height="options.columnHeight"
-          align="left" />
+        <TimeLabels
+          :time-labels="timeLabels"
+          :start-hour="options.startHour"
+          :column-height="options.columnHeight"
+          align="left"
+        />
       </div>
     </div>
+    <BookingDialog
+      ref="bookingDialogRef"
+      review
+      :court-data="courtData"
+      :day-end-time="options.endHour"
+      :day-start-time="options.startHour"
+      @on-submit="refetchSchedule"
+      @on-delete="deleteTimeSlot"
+    />
   </div>
 </template>
 
@@ -67,6 +94,8 @@ const currentStartDate = ref(
 const currentEndDate = ref(
   endOfWeek(new Date(route.params.endDate as string), { weekStartsOn: 0 }),
 );
+
+const bookingDialogRef = ref<InstanceType<typeof BookingDialog> | null>(null);
 
 // Data Fetching
 const { courtData } = await useApi().fetchCourt(ref(route.params.courtId as string));
@@ -154,7 +183,7 @@ const changeWeek = (direction: number) => {
 
 const updateRouteParams = () => {
   navigateTo({
-    name: "timeSlots-courtId-startDate-endDate",
+    name: "admin-timeSlots-courtId-startDate-endDate",
     params: {
       courtId: route.params.courtId,
       startDate: format(currentStartDate.value, "yyyy-MM-dd"),
@@ -163,13 +192,28 @@ const updateRouteParams = () => {
   });
 };
 
+const openReviewModal = (arg: {
+  id: string;
+  currentDayData: {
+    date: string;
+    timeSlots: Array<{
+      id: string;
+      type: string;
+      startTime: string;
+      endTime: string;
+    }>;
+  };
+}) => {
+  console.log(arg);
+  bookingDialogRef.value?.openExisting(arg.id, arg.currentDayData.timeSlots);
+};
+
 const deleteTimeSlot = async (timeSlotId: string) => {
   // Call API to delete time slot
   // After deletion, refresh the schedule data
   await useApi().deleteTimeSlot(timeSlotId);
   refetchSchedule();
 };
-
 
 // Lifecycle Hooks
 onMounted(async () => {

@@ -19,8 +19,98 @@ export interface Court {
   description: string;
 }
 
+export interface NewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  image_url?: string;
+  created_at: string;
+}
+
 export const useApi = () => {
   return {
+    fetchNews: async () => {
+      const { data, status, refresh } = await useAsyncData(
+        "news",
+        async () => {
+          const { data } = await useFetch("/api/news", {
+            method: "GET",
+          });
+          return data.value?.data ?? [];
+        },
+        { lazy: true },
+      );
+
+      return {
+        status,
+        newsData: data,
+        refresh,
+      };
+    },
+
+    fetchNewsItem: async (newsId: string) => {
+      const { data, status, refresh } = await useAsyncData(
+        `news-${newsId}`,
+        async () => {
+          const { data } = await useFetch(`/api/news/${newsId}`, {
+            method: "GET",
+          });
+          return data.value?.data ?? null;
+        },
+        { lazy: false },
+      );
+
+      return {
+        status,
+        newsItemData: data,
+        refresh,
+      };
+    },
+
+    createNews: async (newsData: {
+      title: string;
+      summary: string;
+      content: string;
+      image_url?: string;
+    }) => {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch("/api/news", {
+        method: "POST",
+        body: newsData,
+      });
+      return { status, data: response.value, error };
+    },
+
+    updateNews: async (
+      newsId: string,
+      newsData: {
+        title: string;
+        summary: string;
+        content: string;
+        image_url?: string;
+      },
+    ) => {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch(`/api/news/${newsId}`, {
+        method: "PUT",
+        body: newsData,
+      });
+      return { status, data: response.value, error };
+    },
+
+    deleteNews: async (newsId: string) => {
+      const { data, status, error } = await useFetch(`/api/news/${newsId}`, {
+        method: "DELETE",
+      });
+      return { status, data: data.value, error };
+    },
     fetchSchedule: async (courtId: Ref<string>, startDate: Ref<Date>, endDate: Ref<Date>) => {
       const { data, status, refresh } = await useAsyncData(
         `time-slots-${courtId.value}-${startDate.value}-${endDate.value}`,
@@ -58,7 +148,6 @@ export const useApi = () => {
         name,
         location,
       });
-
 
       const { data, refresh, status } = await useFetch("/api/courts", {
         query: {
@@ -98,7 +187,11 @@ export const useApi = () => {
       };
     },
     createCourt: async (data: { name: string; location: string }) => {
-      const { data: response, status, error } = await useFetch("/api/courts", {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch("/api/courts", {
         method: "POST",
         body: data,
       });
@@ -180,11 +273,11 @@ export const useApi = () => {
       coachId: Ref<string | undefined>;
       filter: Ref<
         | {
-          startTime: string | undefined;
-          endTime: string | undefined;
-          courtId: string | undefined;
-          name: string | undefined;
-        }
+            startTime: string | undefined;
+            endTime: string | undefined;
+            courtId: string | undefined;
+            name: string | undefined;
+          }
         | undefined
       >;
     }) => {
@@ -319,7 +412,11 @@ export const useApi = () => {
     },
 
     updateUser: async (userId: string, data: any) => {
-      const { data: response, status, error } = await useFetch(`/api/users/${userId}`, {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch(`/api/users/${userId}`, {
         method: "POST",
         body: data,
       });

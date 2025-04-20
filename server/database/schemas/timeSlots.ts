@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { t_courts } from "./courts";
 import { relations, sql } from "drizzle-orm";
+import { t_bookings } from "./bookings";
 
 export const t_timeSlots = pgTable(
   "t_time_slots",
@@ -40,8 +41,8 @@ export const timeSlotsRelations = relations(t_timeSlots, ({ one }) => ({
     fields: [t_timeSlots.courtId],
     references: [t_courts.id],
   }),
-  booking: one(t_timeSlots, {
+  booking: one(t_bookings, {
     fields: [t_timeSlots.id],
-    references: [t_timeSlots.id],
+    references: [t_bookings.timeSlotId],
   }),
 }));

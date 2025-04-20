@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
     const timeSlot = await db.query.t_timeSlots.findFirst({
       where: eq(t_timeSlots.id, timeSlotId),
       with: {
-        'booking': true
+        "booking": true
       },
     });
 

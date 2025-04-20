@@ -28,10 +28,10 @@
           全方位的羽球場地管理解決方案，輕鬆掌握場地預約、學員管理和課程安排
         </p>
         <div class="flex space-x-4">
-          <NuxtLink :to="{name:'timeSlots-courts'}">
+          <NuxtLink :to="{ name: 'timeSlots-courts' }">
             <Button label="場地租借" />
           </NuxtLink>
-          <NuxtLink :to="{name:'coachLessons'}">
+          <NuxtLink :to="{ name: 'coachLessons' }">
             <Button
               text
               label="教練課程"
@@ -92,7 +92,7 @@
         >
           <template #header>
             <img
-              :src="news.image"
+              :src="news.image_url || 'https://placehold.co/600x400/EEE/31343C'"
               :alt="news.title"
               class="w-full h-48 object-cover"
             />
@@ -107,6 +107,7 @@
             <Button
               text
               label="閱讀更多"
+              @click="$router.push(`/news/${news.id}`)"
             />
           </template>
         </Card>
@@ -130,7 +131,12 @@ definePageMeta({ name: "home" });
 import { ref } from "vue";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import { useApi } from "~/composables/useApi";
 
+const { fetchNews } = useApi();
+const { status, newsData } = await fetchNews();
+
+const newsList = computed(() => newsData.value || []);
 const features = ref([
   {
     title: "場地出租",
@@ -143,39 +149,6 @@ const features = ref([
   {
     title: "會員管理",
     description: "輕鬆管理會員資料，提供會員註冊和登入功能",
-  },
-]);
-
-const newsList = ref([
-  {
-    id: 1,
-    title: "新課程上線",
-    summary: "全新羽球課程即將開始，歡迎報名！",
-    image: "https://picsum.photos/800/700",
-  },
-  {
-    id: 2,
-    title: "場地升級公告",
-    summary: "我們的場地設施已全面升級，提供更優質的運動體驗",
-    image: "https://picsum.photos/800/700?1",
-  },
-  {
-    id: 2,
-    title: "場地升級公告",
-    summary: "我們的場地設施已全面升級，提供更優質的運動體驗",
-    image: "https://picsum.photos/800/700?2",
-  },
-  {
-    id: 2,
-    title: "場地升級公告",
-    summary: "我們的場地設施已全面升級，提供更優質的運動體驗",
-    image: "https://picsum.photos/800/700?3",
-  },
-  {
-    id: 3,
-    title: "暑期特別課程",
-    summary: "暑期羽球訓練營現在開放報名，名額有限！",
-    image: "https://picsum.photos/800/700?4",
   },
 ]);
 </script>

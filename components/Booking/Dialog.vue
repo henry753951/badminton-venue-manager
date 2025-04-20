@@ -35,6 +35,7 @@
           class="flex-auto"
           v-model="selectedStartTime"
           :options="availableStartTimes"
+          :disabled="review"
           @change="validSelectedTime"
         />
       </div>
@@ -50,7 +51,7 @@
           class="flex-auto"
           v-model="selectedEndTime"
           :options="availableEndTimes"
-          :disabled="!selectedStartTime"
+          :disabled="!selectedStartTime || review"
           @change="validSelectedTime"
         />
       </div>
@@ -103,7 +104,10 @@
         justify-between
         w-full
       >
-        <div class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full">
+        <div
+          class="flex-center bg-light-6 dark:bg-dark-4 py-3 px-3 rounded-full"
+          v-if="!review"
+        >
           <Avatar
             shape="circle"
             class="mr-2"
@@ -119,6 +123,43 @@
         <div
           flex
           gap-3
+          cursor-pointer
+          v-if="review"
+          @click="openEmail(dialogData.user.email)"
+        >
+          <Avatar
+            shape="circle"
+            class="mr-2"
+            :label="dialogData.user.avatar_url ? undefined : (dialogData.user?.name?.[0] ?? '')"
+            :image="dialogData.user.avatar_url || undefined"
+          />
+          <span>{{ dialogData.user.name }}</span>
+        </div>
+        <div
+          flex
+          gap-3
+          v-if="review"
+        >
+          <Button
+            label="取消"
+            text
+            severity="secondary"
+            @click="visible = false"
+          />
+          <Button
+            :loading="isSubmitting"
+            label="刪除"
+            @click="
+              emits('onDelete', id);
+              visible = false;
+            "
+            :disabled="isSubmitting"
+          />
+        </div>
+        <div
+          flex
+          gap-3
+          v-else
         >
           <Button
             label="取消"
@@ -145,10 +186,9 @@ import Button from "primevue/button";
 const visible = defineModel<boolean>("visible");
 
 const props = defineProps({
-  id: {
-    type: String,
-    default: "",
-    required: false,
+  review: {
+    type: Boolean,
+    default: false,
   },
   courtData: {
     type: Object as PropType<{
@@ -173,7 +213,10 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(["onSubmit"]);
+const emits = defineEmits<{
+  (e: "onSubmit"): void;
+  (e: "onDelete", id: string): void;
+}>();
 // Composables
 const auth = useAuth();
 
@@ -182,7 +225,14 @@ const isSubmitting = ref(false);
 const dialogData = ref({
   date: "",
   timeSlots: null as { id: string; startTime: string; endTime: string; type: string }[] | null,
+  user: {
+    id: "",
+    name: "",
+    avatar_url: "",
+    email: "",
+  },
 });
+const id = ref("");
 
 const lesson = ref({
   title: "",
@@ -329,22 +379,68 @@ const open = (
     return;
   }
 
+  reset();
   visible.value = true;
   dialogData.value.date = date;
   dialogData.value.timeSlots = timeSlots;
+};
+
+const openExisting = async (
+  _id: string,
+  cuarrentTimeSlots: { id: string; startTime: string; endTime: string; type: string }[],
+) => {
   reset();
+  id.value = _id;
+  const { data } = await useFetch(`/api/time-slots/${id.value}`, {
+    method: "GET",
+  });
+  if (data.value?.code !== "success" || !data.value.data) {
+    visible.value = false;
+    return;
+  }
+  visible.value = true;
+  dialogData.value.date = data.value.data.timeSlot.date;
+  dialogData.value.user = {
+    id: data.value.data.booking.user.id,
+    name: data.value.data.booking.user.name || "",
+    avatar_url: data.value.data.booking.user.avatar_url || "",
+    email: data.value.data.booking.user.email || "",
+  };
+  // dialogData.value.timeSlots = cuarrentTimeSlots;
+  selectedStartTime.value = data.value.data.timeSlot.startTime.replace(/:00$/, "");
+  selectedEndTime.value = data.value.data.timeSlot.endTime.replace(/:00$/, "");
 };
 
 const reset = () => {
   selectedStartTime.value = null;
   selectedEndTime.value = null;
   isSubmitting.value = false;
+  dialogData.value = {
+    date: "",
+    timeSlots: null,
+    user: {
+      id: "",
+      name: "",
+      avatar_url: "",
+      email: "",
+    },
+  };
 };
+
 defineExpose({
   reset: () => reset(),
   open: (
     date: string,
     timeSlots: { id: string; startTime: string; endTime: string; type: string }[],
   ) => open(date, timeSlots),
+  openExisting: (
+    id: string,
+    cuarrentTimeSlots: { id: string; startTime: string; endTime: string; type: string }[],
+  ) => openExisting(id, cuarrentTimeSlots),
 });
+const openEmail = (email: string) => {
+  if (globalThis.window.confirm("是否要開啟郵件？")) {
+    globalThis.window.open(`mailto:${email}`);
+  }
+};
 </script>

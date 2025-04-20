@@ -11,6 +11,7 @@
 
     <WeekChange
       :current-date="dateRangeDisplay"
+      :can-change-week="canChangeWeek"
       @on-prev="changeWeek(-1)"
       @on-next="changeWeek(1)"
     />
@@ -34,7 +35,7 @@
         <ViewTimeSlots
           :week-schedule="weekSchedule"
           :options="options"
-          @click-date="bookingDialogRef?.open($event.date, $event.timeSlots)"
+          @click-date="clickDate"
         />
       </div>
 
@@ -93,7 +94,7 @@ const currentEndDate = ref(
   endOfWeek(new Date(route.params.endDate as string), { weekStartsOn: 0 }),
 );
 const bookingDialogRef = ref<InstanceType<typeof BookingDialog> | null>(null);
-  
+
 // Data Fetching
 const { courtData } = await useApi().fetchCourt(ref(route.params.courtId as string));
 const { scheduleData, refresh: refetchSchedule } = await useApi().fetchSchedule(
@@ -171,11 +172,32 @@ const weekSchedule = computed(() => {
   };
 });
 
+const canChangeWeek = computed(() => {
+  const today = new Date();
+  const maxStartDate = startOfWeek(addWeeks(today, 0), { weekStartsOn: 0 });
+  const maxEndDate = endOfWeek(addWeeks(today, 0), { weekStartsOn: 0 });
+  const prev = currentStartDate.value > maxStartDate;
+  const next = currentStartDate.value < maxEndDate;
+  return {
+    prev: prev,
+    next: next,
+  };
+});
+
 // Methods
 const changeWeek = (direction: number) => {
   currentStartDate.value = addWeeks(currentStartDate.value, direction);
   currentEndDate.value = addWeeks(currentEndDate.value, direction);
   updateRouteParams();
+};
+
+const clickDate = ($event: any) => {
+  const today = new Date();
+  today.setDate(today.getDate() - 1);
+  if (new Date($event.date) < today) {
+    return;
+  }
+  bookingDialogRef.value?.open($event.date, $event.timeSlots);
 };
 
 const updateRouteParams = () => {
@@ -188,7 +210,6 @@ const updateRouteParams = () => {
     },
   });
 };
-
 
 // Lifecycle Hooks
 onMounted(async () => {

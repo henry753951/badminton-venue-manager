@@ -29,12 +29,7 @@ const pages = ref([
     name: "課程列表",
     value: "lessons",
     routeName: "dashboard-coach-lessons",
-  },
-  {
-    name: "學員列表",
-    value: "students",
-    routeName: "dashboard-coach-students",
-  },
+  }
 ]);
 
 // Computed

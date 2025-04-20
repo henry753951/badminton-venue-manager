@@ -1,24 +1,49 @@
 <template>
   <div class="relative top-10px">
-    <div class="absolute w-full border-t-2 border-red-500 z-10" :style="currentTimeLineStyle"></div>
+    <div
+      class="absolute w-full border-t-2 border-red-500 z-10"
+      :style="currentTimeLineStyle"
+    ></div>
 
-    <div class="grid" :style="{
-      gridTemplateColumns: `repeat(${weekSchedule.currentView.length}, 1fr)`,
-      height: `${options.columnHeight * 2 * (options.endHour - options.startHour)}px`,
-    }">
-      <div v-for="day in weekSchedule.currentView" :key="day.date"
+    <div
+      class="grid"
+      :style="{
+        gridTemplateColumns: `repeat(${weekSchedule.currentView.length}, 1fr)`,
+        height: `${options.columnHeight * 2 * (options.endHour - options.startHour)}px`,
+      }"
+    >
+      <div
+        v-for="day in weekSchedule.currentView"
+        :key="day.date"
         @click="emits('clickDate', { date: day.date, timeSlots: day.timeSlots })"
-        class="relative cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-800" :class="{
+        class="relative cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-800"
+        :class="{
           'border-r border-gray-200 dark:border-dark-600':
             !breakpoints.smallerOrEqual('md').value && day.date !== day.date,
-        }">
-        <div v-for="slot in day.timeSlots" :key="slot.id" class="absolute w-full px-1" :style="getSlotStyle(slot)"
-          @click="emits('clickTimeSlot', slot.id)">
-          <div class="h-full p-1 text-xs rounded overflow-hidden hover:overflow-visible flex-center flex-col gap-1"
+        }"
+      >
+        <div
+          v-for="slot in day.timeSlots"
+          :key="slot.id"
+          class="absolute w-full px-1"
+          :style="getSlotStyle(slot)"
+          @click="
+            emits('clickTimeSlot', {
+              id: slot.id,
+              currentDayData: {
+                date: day.date,
+                timeSlots: day.timeSlots,
+              },
+            })
+          "
+        >
+          <div
+            class="h-full p-1 text-xs rounded overflow-hidden hover:overflow-visible flex-center flex-col gap-1"
             :class="{
               'bg-blue-100 dark:bg-dark-200': slot.type === 'normal',
               'bg-yellow-200 dark:bg-orange-300': slot.type === 'lesson',
-            }">
+            }"
+          >
             <p>
               {{ formatTime(slot.startTime) }} -
               {{ formatTime(slot.endTime) }}
@@ -88,7 +113,21 @@ const emits = defineEmits<{
       }>;
     },
   ): void;
-  (e: "clickTimeSlot", data: { id: string }): void;
+  (
+    e: "clickTimeSlot",
+    data: {
+      id: string;
+      currentDayData: {
+        date: string;
+        timeSlots: Array<{
+          id: string;
+          type: string;
+          startTime: string;
+          endTime: string;
+        }>;
+      };
+    },
+  ): void;
 }>();
 
 const currentTime = useDateFormat(useNow(), "YYYY-MM-DD HH:mm:ss");
