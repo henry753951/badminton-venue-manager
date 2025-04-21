@@ -15,7 +15,7 @@ const formData = ref({
   title: newsItemData.value?.title || "",
   summary: newsItemData.value?.summary || "",
   content: newsItemData.value?.content || "",
-  image: newsItemData.value?.image_url || "",
+  image_url: newsItemData.value?.image_url || "",
 });
 
 const handleUpdate = async () => {
@@ -131,7 +131,7 @@ const formatDate = (dateString: string) => {
           class="w-full mt-2"
         />
         <InputText
-          v-model="formData.image"
+          v-model="formData.image_url"
           placeholder="Image URL"
           class="w-full mt-2"
         />
