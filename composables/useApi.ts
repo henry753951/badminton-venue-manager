@@ -186,7 +186,7 @@ export const useApi = () => {
         refresh,
       };
     },
-    createCourt: async (data: { name: string; location: string }) => {
+    createCourt: async (data: { name: string; location: string; image_url: string }) => {
       const {
         data: response,
         status,
@@ -311,7 +311,7 @@ export const useApi = () => {
     },
     updateLesson: async (
       lessonId: string,
-      data: { title: string; description: string; courtId: string },
+      data: { title: string; description: string; courtId: string; capacity: number },
     ) => {
       const {
         data: response,
@@ -364,6 +364,7 @@ export const useApi = () => {
       endTime: string;
       title: string;
       description: string;
+      capacity: number;
     }) => {
       const {
         data: response,
@@ -379,8 +380,24 @@ export const useApi = () => {
           lesson: {
             title: data.title,
             description: data.description,
+            capacity: data.capacity,
           },
         },
+      });
+
+      return {
+        status,
+        data: response.value,
+        error,
+      };
+    },
+    cancelSignUpLesson: async (lessonId: string) => {
+      const {
+        data: response,
+        status,
+        error,
+      } = await useFetch(`/api/coach-lessons/${lessonId}/signup`, {
+        method: "DELETE",
       });
 
       return {

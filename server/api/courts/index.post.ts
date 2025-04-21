@@ -70,9 +70,10 @@ export default defineEventHandler(async (event) => {
   try {
     const db = useDb();
     const body = await readBody(event);
-    const { name, location } = body as {
+    const { name, location, image_url } = body as {
       name: string;
       location: string;
+      image_url: string;
     };
 
     // Schema validation for inserting into `t_courts`
@@ -80,6 +81,7 @@ export default defineEventHandler(async (event) => {
     const t_courts_values = t_courts_schema.parse({
       name: name || null,
       location: location || null,
+      image_url: image_url || null,
     });
 
     // Insert the new court into the database

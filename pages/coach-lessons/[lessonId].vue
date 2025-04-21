@@ -17,7 +17,7 @@
         v-if="auth.status.value === 'authenticated'"
       >
         <p px-4>
-          報名
+          {{ isSignedUp ? "取消報名" : "報名課程" }}
         </p>
       </Button>
     </div>
@@ -174,7 +174,7 @@ const auth = useAuth();
 
 // States
 const lessonId = ref(useRoute().params.lessonId as string);
-const { lessonData } = await useApi().fetchLesson(lessonId);
+const { lessonData, refresh } = await useApi().fetchLesson(lessonId);
 
 // Methods
 const formatDate = (dateString: string) => {
@@ -189,19 +189,40 @@ const formatDate = (dateString: string) => {
 
 const handleSignUp = async () => {
   const toast = usePVToastService();
-  const { status, data } = await useApi().signUpLesson(lessonId.value);
-  if (data?.code === "error") {
-    toast.add({
-      severity: "error",
-      summary: "報名失敗",
-      detail: data.msg,
-    });
+  if (isSignedUp.value) {
+    const { status, data } = await useApi().cancelSignUpLesson(lessonId.value);
+    if (data?.code === "error") {
+      toast.add({
+        severity: "error",
+        summary: "取消報名失敗",
+        detail: data.msg,
+      });
+    } else {
+      toast.add({
+        severity: "success",
+        summary: "取消報名成功",
+        detail: "已成功取消報名課程",
+      });
+      refresh();
+    }
+    return;
   } else {
-    toast.add({
-      severity: "success",
-      summary: "報名成功",
-      detail: "已成功報名課程",
-    });
+    const { status, data } = await useApi().signUpLesson(lessonId.value);
+    if (data?.code === "error") {
+      toast.add({
+        severity: "error",
+        summary: "報名失敗",
+        detail: data.msg,
+      });
+    } else {
+      toast.add({
+        severity: "success",
+        summary: "報名成功",
+        detail: "已成功報名課程",
+      });
+      refresh();
+    }
+    return;
   }
 };
 
@@ -222,6 +243,10 @@ onMounted(() => {
       route: undefined,
     },
   ];
+});
+
+const isSignedUp = computed(() => {
+  return lessonData.value?.students.some((student) => student.id === auth.data.value?.user.id);
 });
 </script>
 

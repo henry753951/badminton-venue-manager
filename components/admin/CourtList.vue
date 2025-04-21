@@ -1,24 +1,46 @@
 <template>
-    <div>
-        <DataTable :value="courts" :loading="loading" class="p-datatable-striped">
-            <Column field="name" header="名稱"></Column>
-            <Column field="location" header="地點"></Column>
+  <div>
+    <DataTable
+      :value="courts"
+      :loading="loading"
+      class="p-datatable-striped"
+    >
+      <Column
+        field="name"
+        header="名稱"
+      ></Column>
+      <Column
+        field="location"
+        header="地點"
+      ></Column>
 
-            <Column>
-                <template #body="slotProps">
-                    <Button label="管理預約" @click="navigateToCourt(slotProps.data.id)" class="p-button-sm"/>
-                </template>
-            </Column>
-            <Column>
-                <template #body="slotProps">
-                    <Button label="刪除" @click="deleteCourt(slotProps.data.id)" class="p-button-sm p-button-danger" />
-                </template>
-            </Column>
-        </DataTable>
-        <Dialog v-model:visible="showForm" header="創建新球場" :modal="true">
-            <CourtForm @save="createCourt" />
-        </Dialog>
-    </div>
+      <Column>
+        <template #body="slotProps">
+          <Button
+            label="管理預約"
+            @click="navigateToCourt(slotProps.data.id)"
+            class="p-button-sm"
+          />
+        </template>
+      </Column>
+      <Column>
+        <template #body="slotProps">
+          <Button
+            label="刪除"
+            @click="deleteCourt(slotProps.data.id)"
+            class="p-button-sm p-button-danger"
+          />
+        </template>
+      </Column>
+    </DataTable>
+    <Dialog
+      v-model:visible="showForm"
+      header="創建新球場"
+      :modal="true"
+    >
+      <CourtForm @save="createCourt" />
+    </Dialog>
+  </div>
 </template>
 
 <script setup>

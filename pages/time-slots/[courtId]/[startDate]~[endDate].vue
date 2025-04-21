@@ -80,8 +80,8 @@ const breakpoints = useBreakpoints(breakpointsTailwind);
 
 // State
 const options = ref({
-  startHour: 0,
-  endHour: 24,
+  startHour: 7,
+  endHour: 21,
   mobile: {
     offsetOfWeek: 0,
   },

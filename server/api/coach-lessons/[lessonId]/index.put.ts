@@ -14,6 +14,7 @@ const updateLessonSchema = z.object({
   title: z.string().min(1, "標題不能為空").optional(),
   description: z.string().optional(),
   timeSlotId: z.string().optional(),
+  capacity: z.number(),
 });
 
 defineRouteMeta({

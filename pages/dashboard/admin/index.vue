@@ -57,7 +57,7 @@
               class="w-full"
             />
             <InputText
-              v-model="formData.image"
+              v-model="formData.image_url"
               placeholder="Image URL"
               class="w-full"
             />
@@ -100,7 +100,7 @@ onMounted(() => {
 });
 
 const { fetchNews } = useApi();
-const { status, newsData } = await fetchNews();
+const { status, newsData, refresh } = await fetchNews();
 
 const newsList = computed(() => newsData.value || []);
 
@@ -112,7 +112,7 @@ const formData = ref({
   title: "",
   summary: "",
   content: "",
-  image: "",
+  image_url: "",
 });
 
 const handleCreate = async () => {
@@ -122,7 +122,7 @@ const handleCreate = async () => {
   }
   const { status, error } = await createNews(formData.value);
   if (status.value === "success") {
-    navigateTo("/news");
+    refresh();
   } else {
     console.error("Create failed:", error);
   }

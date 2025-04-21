@@ -106,7 +106,6 @@ export default defineEventHandler(async (event) => {
     const { userId: userId_, coachId: coachId_, ...filter } = querySchema.parse(query);
     const userId = userId_ === "me" ? event.context.currentUser?.id : userId_;
     const coachId = coachId_ === "me" ? event.context.currentUser?.id : coachId_;
-
     if (userId_ === "me" && !event.context.currentUser || coachId_ === "me" && !event.context.currentUser) {
       throw createError({
         statusCode: 401,
@@ -120,7 +119,7 @@ export default defineEventHandler(async (event) => {
     const db = useDb();
 
     const lessons_ = await db.query.t_coachLessonCoaches.findMany({
-      where: userId ? eq(t_coachLessonCoaches.coachId, userId) : undefined,
+      where: coachId ? eq(t_coachLessonCoaches.coachId, coachId) : undefined,
       with: {
         coachLesson: {
           with: {
@@ -206,7 +205,7 @@ export default defineEventHandler(async (event) => {
           if (lesson.students.some((student) => student.id === userId)) return true;
           return false;
         }
-        
+
         return true;
       })
       .filter((lesson, index, self) => self.findIndex((t) => t.id === lesson.id) === index);
